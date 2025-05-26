@@ -307,11 +307,11 @@ void update_game() {
   // Ball out of bounds - score points
   if (game.ball.x < 0) {
     game.player2.score++;
-    reset_ball(1);  // Reset ball towards AI
+    reset_ball(1);  // Reset ball towards player1
   }
   if (game.ball.x > f_size.width) {
     game.player1.score++;
-    reset_ball(-1);  // Reset ball towards player
+    reset_ball(-1);  // Reset ball towards player2
   }
 
   // Check for winner

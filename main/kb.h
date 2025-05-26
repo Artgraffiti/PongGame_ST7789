@@ -14,12 +14,18 @@
 #define DEBOUNCE_CHECKS 5
 #define DEBOUNCE_INTERVAL_MS 12
 
-void btn_left_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-void btn_up_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-void btn_down_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-void btn_right_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-void btn_confirm_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
-void btn_cancel_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
+void btn_left_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                      void *event_data);
+void btn_up_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                    void *event_data);
+void btn_down_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                      void *event_data);
+void btn_right_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                       void *event_data);
+void btn_confirm_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                         void *event_data);
+void btn_cancel_handler(void *handler_args, esp_event_base_t base, int32_t id,
+                        void *event_data);
 
 void keyboard_task(void *pvParameters);
 

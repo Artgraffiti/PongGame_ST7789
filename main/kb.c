@@ -2,8 +2,8 @@
 
 void keyboard_task(void *pvParameters) {
   button_debounce_cfg debounce_cfg = {
-    .debounce_checks = DEBOUNCE_CHECKS,
-    .debounce_interval_ms = DEBOUNCE_INTERVAL_MS,
+      .debounce_checks = DEBOUNCE_CHECKS,
+      .debounce_interval_ms = DEBOUNCE_INTERVAL_MS,
   };
 
   button_t btn_left, btn_up, btn_down, btn_right, btn_confirm, btn_cancel;
