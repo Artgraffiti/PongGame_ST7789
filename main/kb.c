@@ -1,6 +1,9 @@
 #include "kb.h"
 
-void keyboard_task(void *pvParameters) {
+#include "button.h"
+#include "freertos/idf_additions.h"
+
+void kb_task(void *pvParameters) {
   button_debounce_cfg debounce_cfg = {
       .debounce_checks = DEBOUNCE_CHECKS,
       .debounce_interval_ms = DEBOUNCE_INTERVAL_MS,
@@ -28,12 +31,12 @@ void keyboard_task(void *pvParameters) {
   button_set_debounce_conf(&btn_confirm, debounce_cfg);
   button_set_debounce_conf(&btn_cancel, debounce_cfg);
 
-  button_set_event_handler(&btn_left, btn_left_handler, NULL);
-  button_set_event_handler(&btn_up, btn_up_handler, NULL);
-  button_set_event_handler(&btn_down, btn_down_handler, NULL);
-  button_set_event_handler(&btn_right, btn_right_handler, NULL);
-  button_set_event_handler(&btn_confirm, btn_confirm_handler, NULL);
-  button_set_event_handler(&btn_cancel, btn_cancel_handler, NULL);
+  button_set_event_handler(&btn_left, kb_event_handler, NULL);
+  button_set_event_handler(&btn_up, kb_event_handler, NULL);
+  button_set_event_handler(&btn_down, kb_event_handler, NULL);
+  button_set_event_handler(&btn_right, kb_event_handler, NULL);
+  button_set_event_handler(&btn_confirm, kb_event_handler, NULL);
+  button_set_event_handler(&btn_cancel, kb_event_handler, NULL);
 
   while (1) {
     // Delay for watchdog

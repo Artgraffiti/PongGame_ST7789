@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "driver/gpio.h"
 #include "esp_err.h"
-#include "esp_event.h"
+#include "esp_event_base.h"
 #include "esp_timer.h"
+#include "hal/gpio_types.h"
 #include "soc/gpio_num.h"
 
 typedef struct {

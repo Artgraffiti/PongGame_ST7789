@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
+#include "button.h"
 #include "dirent.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -21,7 +21,7 @@
 #define INITIAL_BALL_SPEED_X 2
 #define INITIAL_BALL_SPEED_Y 5
 #define PADDLE_SPEED 6
-#define SCORE_TO_WIN 5
+#define SCORE_TO_WIN 10
 #define MAX_SPEED 6
 #define SPEED_INCREASE 0.2f
 
@@ -82,88 +82,50 @@ const static char *TAG = "main";
 static PongGame game;
 
 // ====== START of buttons bindings ======
-void btn_left_handler(void *handler_args, esp_event_base_t base, int32_t id,
+void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                       void *event_data) {
   button_state_info_t *state_info = (button_state_info_t *)event_data;
 
-  if (state_info->state) {
-    game.player1.paddle.speed = PADDLE_SPEED;
-  } else {
-    game.player1.paddle.speed = 0;
+  if (id == BUTTON_LEFT_GPIO) {
+    game.player1.paddle.speed = state_info->state ? -PADDLE_SPEED : 0;
+    ESP_LOGI("LEFT", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
+
+  } else if (id == BUTTON_UP_GPIO) {
+    game.player2.paddle.speed = state_info->state ? -PADDLE_SPEED : 0;
+    ESP_LOGI("UP", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
+
+  } else if (id == BUTTON_DOWN_GPIO) {
+    game.player1.paddle.speed = state_info->state ? PADDLE_SPEED : 0;
+    ESP_LOGI("DOWN", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
+
+  } else if (id == BUTTON_RIGHT_GPIO) {
+    game.player2.paddle.speed = state_info->state ? PADDLE_SPEED : 0;
+    ESP_LOGI("RIGHT", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
+
+  } else if (id == BUTTON_CONFIRM_GPIO) {
+    if (state_info->state && game.state == GAME_STATE_GAME_OVER) {
+      game.state = GAME_STATE_PLAYING;
+      game.player1.score = 0;
+      game.player2.score = 0;
+    }
+    ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
+
+  } else if (id == BUTTON_CANCEL_GPIO) {
+    if (state_info->state) {
+      if (game.state == GAME_STATE_PLAYING) {
+        game.state = GAME_STATE_PAUSED;
+      } else if (game.state == GAME_STATE_PAUSED) {
+        game.state = GAME_STATE_PLAYING;
+      }
+    }
+    ESP_LOGI("CANCEL", "button %d: %s", (int)id,
+             state_info->state ? "PRESSED" : "RELEASED");
   }
-
-  ESP_LOGI("LEFT", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
-}
-
-void btn_up_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                    void *event_data) {
-  button_state_info_t *state_info = (button_state_info_t *)event_data;
-
-  if (state_info->state) {
-    game.player1.paddle.speed = -PADDLE_SPEED;
-  } else {
-    game.player1.paddle.speed = 0;
-  }
-
-  ESP_LOGI("UP", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
-}
-
-void btn_down_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                      void *event_data) {
-  button_state_info_t *state_info = (button_state_info_t *)event_data;
-
-  if (state_info->state) {
-    game.player2.paddle.speed = PADDLE_SPEED;
-  } else {
-    game.player2.paddle.speed = 0;
-  }
-
-  ESP_LOGI("DOWN", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
-}
-
-void btn_right_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                       void *event_data) {
-  button_state_info_t *state_info = (button_state_info_t *)event_data;
-
-  if (state_info->state) {
-    game.player2.paddle.speed = -PADDLE_SPEED;
-  } else {
-    game.player2.paddle.speed = 0;
-  }
-
-  ESP_LOGI("RIGHT", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
-}
-
-void btn_confirm_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                         void *event_data) {
-  button_state_info_t *state_info = (button_state_info_t *)event_data;
-
-  if (state_info->state && game.state == GAME_STATE_GAME_OVER) {
-    game.state = GAME_STATE_PLAYING;
-    game.player1.score = 0;
-    game.player2.score = 0;
-  }
-
-  ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
-}
-
-void btn_cancel_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                        void *event_data) {
-  button_state_info_t *state_info = (button_state_info_t *)event_data;
-
-  if (state_info->state && game.state == GAME_STATE_PLAYING) {
-    game.state = GAME_STATE_PAUSED;
-  } else if (state_info->state && game.state == GAME_STATE_PAUSED) {
-    game.state = GAME_STATE_PLAYING;
-  }
-
-  ESP_LOGI("CANCEL", "button %d: %s", (int)id,
-           state_info->state ? "PRESSED" : "RELEASED");
 }
 // ====== END of buttons bindings ======
 
@@ -378,7 +340,7 @@ void draw_game_over(TFT_t *dev) {
 
   // Draw final score
   char score_str[32];
-  snprintf(score_str, sizeof(score_str), "Final Score: %d - %d", pl1_score,
+  snprintf(score_str, sizeof(score_str), "Final Score: %d-%d", pl1_score,
            pl2_score);
   lcdDrawString(dev, def_font, dev->_width / 2 - 105, dev->_height / 2,
                 (uint8_t *)score_str, WHITE);
@@ -507,6 +469,6 @@ void app_main(void) {
 
   esp_event_loop_create_default();
 
-  xTaskCreate(keyboard_task, "keyboard_task", 1024 * 3, NULL, 2, NULL);
+  xTaskCreate(kb_task, "keyboard_task", 1024 * 3, NULL, 2, NULL);
   xTaskCreate(game_task, "game_task", 1024 * 6, NULL, 3, NULL);
 }
