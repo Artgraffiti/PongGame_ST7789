@@ -15,8 +15,6 @@
 
 const static char *TAG = "main";
 
-PongGame game;
-
 #ifdef FRAME_RATE
 #include "esp_timer.h"
 
@@ -32,8 +30,10 @@ static void draw_fps(TFT_t *dev, int32_t time_start, FontxFile *font) {
 
 void game_task(void *pvParameters) {
   TFT_t dev;
+  PongGame game;
+
   init_display(&dev);
-  init_game(&dev);
+  init_game(&game, &dev);
   kb_init(&game);
 
   while (1) {
@@ -41,8 +41,8 @@ void game_task(void *pvParameters) {
     int32_t time_start = esp_timer_get_time();
 #endif
 
-    update_game();
-    draw_game(&dev);
+    update_game(&game);
+    draw_game(&game);
 
 #ifdef FRAME_RATE
     draw_fps(&dev, time_start, game.resources.small_font);

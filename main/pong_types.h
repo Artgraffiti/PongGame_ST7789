@@ -6,6 +6,19 @@
 #include <stdio.h>
 
 #include "fontx.h"
+#include "st7789.h"
+
+// Game configuration
+#define PADDLE_WIDTH 10
+#define PADDLE_HEIGHT 60
+#define PADDLE_MARGIN 10
+#define BALL_SIZE 12
+#define INITIAL_BALL_SPEED_X 2
+#define INITIAL_BALL_SPEED_Y 5
+#define PADDLE_SPEED 6
+#define SCORE_TO_WIN 10
+#define MAX_SPEED 6
+#define SPEED_INCREASE 0.2f
 
 typedef enum {
   GAME_STATE_PLAYING,
@@ -57,6 +70,7 @@ typedef struct {
   GameState state;
   GameResources resources;
   GameFieldSize field_size;
+  TFT_t *display;
 } PongGame;
 
 #endif  // PONG_TYPES_H
