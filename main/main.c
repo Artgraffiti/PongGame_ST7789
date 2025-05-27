@@ -7,9 +7,9 @@
 #include "freertos/FreeRTOS.h"
 #include "fs.h"
 #include "kb.h"
-#include "pong_draw.h"
-#include "pong_game.h"
-#include "pong_types.h"
+#include "pong/pong_draw.h"
+#include "pong/pong_game.h"
+#include "pong/pong_types.h"
 
 const static char *TAG = "main";
 

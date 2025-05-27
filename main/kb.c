@@ -2,8 +2,7 @@
 
 #include "button.h"
 #include "esp_log.h"
-#include "pong_game.h"
-#include "pong_types.h"
+#include "pong/pong_types.h"
 
 void kb_init(void *pvParameters) {
   button_debounce_cfg debounce_cfg = {
