@@ -14,9 +14,8 @@
 #define DEBOUNCE_CHECKS 5
 #define DEBOUNCE_INTERVAL_MS 12
 
+void kb_init(void *pvParameters);
 void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                       void *event_data);
 
-void kb_task(void *pvParameters);
-
-#endif
+#endif  // KB_H_
