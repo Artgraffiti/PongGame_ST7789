@@ -76,6 +76,28 @@ static void clamp_paddle(PongGame *game, Paddle *p) {
   if (p->y > height - p->height) p->y = height - p->height;
 }
 
+static void check_winner(PongGame *game) {
+  if (game->player1.score >= SCORE_TO_WIN ||
+      game->player2.score >= SCORE_TO_WIN) {
+    game->state = GAME_STATE_GAME_OVER;
+  }
+}
+
+static void check_ball_wall_collision(PongGame *game, Ball *ball) {
+  int ball_top = ball->y - ball->size / 2;
+  int ball_bottom = ball->y + ball->size / 2;
+
+  if (ball_top <= 0) {
+    ball->y = ball->size / 2;
+    ball->speed_y *= -1;
+  }
+
+  if (ball_bottom >= game->field_size.height) {
+    ball->y = game->field_size.height - ball->size;
+    ball->speed_y *= -1;
+  }
+}
+
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;
 
@@ -95,22 +117,14 @@ void update_game(PongGame *game) {
   ball->x += ball->speed_x * game->ball_speed_multiplier;
   ball->y += ball->speed_y * game->ball_speed_multiplier;
 
-  // Ball collision with top and bottom
+  check_ball_wall_collision(game, ball);
+
+  // Ball collision with paddles
   int ball_top = ball->y - ball->size / 2;
   int ball_bottom = ball->y + ball->size / 2;
   int ball_left = ball->x - ball->size / 2;
   int ball_right = ball->x + ball->size / 2;
-  if (ball_top <= 0) {
-    ball->y = ball->size / 2;
-    ball->speed_y *= -1;
-  }
 
-  if (ball_bottom >= f_size.height) {
-    ball->y = f_size.height - ball->size;
-    ball->speed_y *= -1;
-  }
-
-  // Ball collision with paddles
   int p1_right = p1->x + p1->width;
   int p1_top = p1->y;
   int p1_bottom = p1->y + p1->height;
@@ -146,9 +160,5 @@ void update_game(PongGame *game) {
     reset_ball(game, -1);  // Reset ball towards player2
   }
 
-  // Check for winner
-  if (game->player1.score >= SCORE_TO_WIN ||
-      game->player2.score >= SCORE_TO_WIN) {
-    game->state = GAME_STATE_GAME_OVER;
-  }
+  check_winner(game);
 }
