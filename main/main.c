@@ -5,8 +5,6 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "freertos/projdefs.h"
-#include "freertos/task.h"
 #include "fs.h"
 #include "kb.h"
 #include "pong_draw.h"

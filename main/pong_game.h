@@ -6,6 +6,5 @@
 
 void init_game(PongGame *game, TFT_t *dev);
 void update_game(PongGame *game);
-void reset_ball(PongGame *game, int direction);
 
 #endif  // PONG_GAME_H

@@ -3,6 +3,40 @@
 #include "pong_types.h"
 #include "st7789.h"
 
+static void init_ball(PongGame *game, Ball *ball) {
+  uint16_t width = game->field_size.width;
+  uint16_t height = game->field_size.height;
+
+  ball->x = width / 2;
+  ball->y = height / 2;
+  ball->size = BALL_SIZE;
+  ball->speed_x = INITIAL_BALL_SPEED_X * (rand() % 2 ? 1 : -1);
+  ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
+}
+
+static void init_player(PongGame *game, Player *player, int num) {
+  Paddle *pdl = &player->paddle;
+
+  if (num == 1)
+    pdl->x = PADDLE_MARGIN;
+  else if (num == 2)
+    pdl->x = game->field_size.width - PADDLE_MARGIN - PADDLE_WIDTH;
+  pdl->y = game->field_size.height / 2 - PADDLE_HEIGHT / 2;
+  pdl->width = PADDLE_WIDTH;
+  pdl->height = PADDLE_HEIGHT;
+  pdl->speed = 0;
+
+  player->score = 0;
+}
+
+static void init_fonts(GameResources *res) {
+  const char *fonts[] = {"/fonts/ILMH16XB.FNT", "/fonts/ILMH24XB.FNT",
+                         "/fonts/ILMH32XB.FNT"};
+  InitFontx(res->small_font, fonts[0], "");
+  InitFontx(res->default_font, fonts[1], "");
+  InitFontx(res->large_font, fonts[2], "");
+}
+
 void init_game(PongGame *game, TFT_t *dev) {
   if (dev == NULL) return;
   game->display = dev;
@@ -11,62 +45,35 @@ void init_game(PongGame *game, TFT_t *dev) {
   game->field_size.width = dev->_width;
   game->field_size.height = dev->_height;
 
-  // Init fonts
-  const char *fonts[] = {
-      "/fonts/ILMH16XB.FNT",  // 8x16Dot Mincyo
-      "/fonts/ILMH24XB.FNT",  // 12x24Dot Mincyo
-      "/fonts/ILMH32XB.FNT"   // 16x32Dot Mincyo
-  };
-  InitFontx(game->resources.small_font, fonts[0], "");    // 8x16Dot Mincyo
-  InitFontx(game->resources.default_font, fonts[1], "");  // 12x24Dot Mincyo
-  InitFontx(game->resources.large_font, fonts[2], "");    // 16x32Dot Mincyo
-
   game->resources.paddle_color = WHITE;
   game->resources.ball_color = GREEN;
-  game->resources.background_color = WHITE;
+  game->resources.background_color = BLACK;
+  init_fonts(&game->resources);
 
-  // Padles
-  Paddle *p1 = &game->player1.paddle;
-  Paddle *p2 = &game->player2.paddle;
+  init_player(game, &game->player1, 1);
+  init_player(game, &game->player2, 2);
 
-  // Player1 paddle
-  p1->x = PADDLE_MARGIN;
-  p1->y = game->field_size.height / 2 - PADDLE_HEIGHT / 2;
-  p1->width = PADDLE_WIDTH;
-  p1->height = PADDLE_HEIGHT;
-  p1->speed = 0;
-
-  // Player2 paddle
-  p2->x = game->field_size.width - PADDLE_MARGIN - PADDLE_WIDTH;
-  p2->y = game->field_size.height / 2 - PADDLE_HEIGHT / 2;
-  p2->width = PADDLE_WIDTH;
-  p2->height = PADDLE_HEIGHT;
-  p2->speed = 0;
-
-  // Ball
-  Ball *ball = &game->ball;
-  ball->x = game->field_size.width / 2;
-  ball->y = game->field_size.height / 2;
-  ball->size = BALL_SIZE;
-  ball->speed_x = INITIAL_BALL_SPEED_X * (rand() % 2 ? 1 : -1);
-  ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
+  init_ball(game, &game->ball);
 
   game->ball_speed_multiplier = 1.0f;
-
-  // Scores
-  game->player1.score = 0;
-  game->player2.score = 0;
 
   game->state = GAME_STATE_PLAYING;
 }
 
-void reset_ball(PongGame *game, int direction) {
+static void reset_ball(PongGame *game, int direction) {
   Ball *ball = &game->ball;
 
   ball->x = game->field_size.width / 2 - BALL_SIZE / 2;
   ball->y = game->field_size.height / 2 - BALL_SIZE / 2;
   ball->speed_x = INITIAL_BALL_SPEED_X * direction;
   ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
+}
+
+static void clamp_paddle(PongGame *game, Paddle *p) {
+  uint16_t height = game->field_size.height;
+
+  if (p->y < 0) p->y = 0;
+  if (p->y > height - p->height) p->y = height - p->height;
 }
 
 void update_game(PongGame *game) {
@@ -81,14 +88,8 @@ void update_game(PongGame *game) {
   p1->y += p1->speed;
   p2->y += p2->speed;
 
-  // Keep paddles on screen
-  if (game->player1.paddle.y < 0) game->player1.paddle.y = 0;
-  if (game->player1.paddle.y > f_size.height - p1->height)
-    p1->y = f_size.height - p1->height;
-
-  if (game->player2.paddle.y < 0) game->player2.paddle.y = 0;
-  if (game->player2.paddle.y > f_size.height - p2->height)
-    p2->y = f_size.height - p2->height;
+  clamp_paddle(game, p1);
+  clamp_paddle(game, p2);
 
   // Move ball
   ball->x += ball->speed_x * game->ball_speed_multiplier;

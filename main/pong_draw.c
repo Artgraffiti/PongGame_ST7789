@@ -8,7 +8,7 @@
 
 const static char *TAG = __FILE__;
 
-void draw_midcourt_line(PongGame *game, uint16_t color) {
+static void draw_midcourt_line(PongGame *game, uint16_t color) {
   TFT_t *dev = game->display;
 
   for (int y = 0; y < dev->_height; y += 10) {
@@ -17,21 +17,21 @@ void draw_midcourt_line(PongGame *game, uint16_t color) {
   }
 }
 
-void draw_paddle(PongGame *game, Paddle paddle, uint16_t color) {
+static void draw_paddle(PongGame *game, Paddle paddle, uint16_t color) {
   TFT_t *dev = game->display;
 
   lcdDrawFillRect(dev, paddle.x, paddle.y, paddle.x + paddle.width,
                   paddle.y + paddle.height, color);
 }
 
-void draw_ball(PongGame *game, Ball ball, uint16_t color) {
+static void draw_ball(PongGame *game, Ball ball, uint16_t color) {
   TFT_t *dev = game->display;
 
   lcdDrawFillCircle(dev, ball.x, ball.y, ball.size / 2, color);
 }
 
-void draw_scores(PongGame *game, uint16_t p1_score, uint16_t p2_score,
-                 uint16_t color) {
+static void draw_scores(PongGame *game, uint16_t p1_score, uint16_t p2_score,
+                        uint16_t color) {
   TFT_t *dev = game->display;
 
   char score_str[16];
@@ -40,7 +40,7 @@ void draw_scores(PongGame *game, uint16_t p1_score, uint16_t p2_score,
                 (uint8_t *)score_str, color);
 }
 
-void draw_game_over(PongGame *game) {
+static void draw_game_over(PongGame *game) {
   TFT_t *dev = game->display;
 
   uint16_t pl1_score = game->player1.score;
@@ -65,18 +65,18 @@ void draw_game_over(PongGame *game) {
                 (uint8_t *)"CONFIRM: Restart", WHITE);
 }
 
-void draw_playing(PongGame *game) {
+static void draw_playing(PongGame *game) {
   TFT_t *dev = game->display;
 
   // Draw center line
   draw_midcourt_line(game, GRAY);
 
   // Draw paddles
-  draw_paddle(game, game->player1.paddle, WHITE);
-  draw_paddle(game, game->player2.paddle, WHITE);
+  draw_paddle(game, game->player1.paddle, game->resources.paddle_color);
+  draw_paddle(game, game->player2.paddle, game->resources.paddle_color);
 
   // Draw ball
-  draw_ball(game, game->ball, GREEN);
+  draw_ball(game, game->ball, game->resources.ball_color);
 
   // Draw scores
   draw_scores(game, game->player1.score, game->player2.score, WHITE);
@@ -89,7 +89,7 @@ void draw_playing(PongGame *game) {
 
 void draw_game(PongGame *game) {
   TFT_t *dev = game->display;
-  lcdFillScreen(dev, BLACK);
+  lcdFillScreen(dev, game->resources.background_color);
 
   switch (game->state) {
     case GAME_STATE_PLAYING:
