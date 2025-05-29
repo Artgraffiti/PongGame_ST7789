@@ -100,6 +100,22 @@ static void check_ball_wall_collision(PongGame *game, Ball *ball) {
   }
 }
 
+static void check_ball_out_of_bounds(PongGame *game) {
+  const int width = game->field_size.width;
+  if (game->ball.x < 0) {
+    game->player2.score++;
+    reset_ball(game, 1);
+  } else if (game->ball.x > width) {
+    game->player1.score++;
+    reset_ball(game, -1);
+  }
+}
+
+static void clamp_ball_speed(PongGame *game) {
+  if (game->ball_speed_multiplier > MAX_SPEED)
+    game->ball_speed_multiplier = MAX_SPEED;
+}
+
 static void handle_paddle_collision(PongGame *game, const Paddle *p, uint8_t p_num) {
   Ball *ball = &game->ball;
   int ball_top = calc_ball_top(ball);
@@ -130,7 +146,6 @@ static void handle_paddle_collision(PongGame *game, const Paddle *p, uint8_t p_n
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;
 
-  const GameFieldSize f_size = game->field_size;
   Paddle *p1 = &game->player1.paddle;
   Paddle *p2 = &game->player2.paddle;
   Ball *ball = &game->ball;
@@ -152,20 +167,8 @@ void update_game(PongGame *game) {
   handle_paddle_collision(game, p1, 1);
   handle_paddle_collision(game, p2, 2);
 
-  // Limit maximum speed
-  if (game->ball_speed_multiplier > MAX_SPEED) {
-    game->ball_speed_multiplier = MAX_SPEED;
-  }
-
-  // Ball out of bounds - score points
-  if (game->ball.x < 0) {
-    game->player2.score++;
-    reset_ball(game, 1);  // Reset ball towards player1
-  }
-  if (game->ball.x > f_size.width) {
-    game->player1.score++;
-    reset_ball(game, -1);  // Reset ball towards player2
-  }
+  clamp_ball_speed(game);
+  check_ball_out_of_bounds(game);
 
   check_winner(game);
 }
