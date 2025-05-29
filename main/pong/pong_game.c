@@ -1,6 +1,8 @@
 #include "pong_game.h"
+#include <stdint.h>
 
 #include "pong_types.h"
+#include "pong_utils.h"
 #include "st7789.h"
 
 static void init_ball(PongGame *game, Ball *ball) {
@@ -14,12 +16,12 @@ static void init_ball(PongGame *game, Ball *ball) {
   ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
 }
 
-static void init_player(PongGame *game, Player *player, int num) {
+static void init_player(PongGame *game, Player *player, uint8_t p_num) {
   Paddle *pdl = &player->paddle;
 
-  if (num == 1)
+  if (p_num == 1)
     pdl->x = PADDLE_MARGIN;
-  else if (num == 2)
+  else if (p_num == 2)
     pdl->x = game->field_size.width - PADDLE_MARGIN - PADDLE_WIDTH;
   pdl->y = game->field_size.height / 2 - PADDLE_HEIGHT / 2;
   pdl->width = PADDLE_WIDTH;
@@ -60,7 +62,7 @@ void init_game(PongGame *game, TFT_t *dev) {
   game->state = GAME_STATE_PLAYING;
 }
 
-static void reset_ball(PongGame *game, int direction) {
+static void reset_ball(PongGame *game, uint8_t direction) {
   Ball *ball = &game->ball;
 
   ball->x = game->field_size.width / 2 - BALL_SIZE / 2;
@@ -98,6 +100,33 @@ static void check_ball_wall_collision(PongGame *game, Ball *ball) {
   }
 }
 
+static void handle_paddle_collision(PongGame *game, const Paddle *p, uint8_t p_num) {
+  Ball *ball = &game->ball;
+  int ball_top = calc_ball_top(ball);
+  int ball_bottom = calc_ball_bottom(ball);
+  int ball_left = calc_ball_left(ball);
+  int ball_right = calc_ball_right(ball);
+
+  int p_top = calc_paddle_top(p);
+  int p_bottom = calc_paddle_bottom(p);
+
+  if (p_num == 1) {
+    int p_right = calc_paddle_right(p);
+    if ((ball_left <= p_right) && (p_top <= ball_top) && (ball_bottom <= p_bottom)) {
+      ball->x = p_right + ball->size / 2;
+      ball->speed_x *= -1;
+      game->ball_speed_multiplier += SPEED_INCREASE;
+    }
+  } else if (p_num == 2) {
+    int p_left = calc_paddle_left(p);
+    if ((ball_right >= p_left) && (p_top <= ball_top) && (ball_bottom <= p_bottom)) {
+      ball->x = p_left - ball->size / 2;
+      ball->speed_x *= -1;
+      game->ball_speed_multiplier += SPEED_INCREASE;
+    }
+  }
+}
+
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;
 
@@ -120,30 +149,8 @@ void update_game(PongGame *game) {
   check_ball_wall_collision(game, ball);
 
   // Ball collision with paddles
-  int ball_top = ball->y - ball->size / 2;
-  int ball_bottom = ball->y + ball->size / 2;
-  int ball_left = ball->x - ball->size / 2;
-  int ball_right = ball->x + ball->size / 2;
-
-  int p1_right = p1->x + p1->width;
-  int p1_top = p1->y;
-  int p1_bottom = p1->y + p1->height;
-  if ((ball_left <= p1_right) && (p1_top <= ball_top) &&
-      (ball_bottom <= p1_bottom)) {
-    ball->x = p1_right + ball->size / 2;
-    ball->speed_x *= -1;
-    game->ball_speed_multiplier += SPEED_INCREASE;
-  }
-
-  int p2_left = p2->x;
-  int p2_top = p2->y;
-  int p2_bottom = p2->y + p2->height;
-  if ((ball_right >= p2_left) && (p2_top <= ball_top) &&
-      (ball_bottom <= p2_bottom)) {
-    ball->x = p2_left - ball->size / 2;
-    ball->speed_x *= -1;
-    game->ball_speed_multiplier += SPEED_INCREASE;
-  }
+  handle_paddle_collision(game, p1, 1);
+  handle_paddle_collision(game, p2, 2);
 
   // Limit maximum speed
   if (game->ball_speed_multiplier > MAX_SPEED) {
