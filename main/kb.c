@@ -2,6 +2,7 @@
 
 #include "button.h"
 #include "esp_log.h"
+#include "pong/pong_engine.h"
 #include "pong/pong_types.h"
 
 void kb_init(void *pvParameters) {
@@ -68,9 +69,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
 
   } else if (id == BUTTON_CONFIRM_GPIO) {
     if (pressed && game->state == GAME_STATE_GAME_OVER) {
-      game->state = GAME_STATE_PLAYING;
-      game->player1.score = 0;
-      game->player2.score = 0;
+      restart_game(game);
     }
     ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");

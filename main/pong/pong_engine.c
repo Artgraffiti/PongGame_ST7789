@@ -27,9 +27,7 @@ static void init_ball(const PongGame *game, Ball *ball) {
   reset_ball(game, ball, (rand() % 2 ? 1 : -1));
 }
 
-static void init_player(const PongGame *game, Player *player, uint8_t p_num) {
-  Paddle *pdl = &player->paddle;
-
+static void init_paddle(const PongGame *game, Paddle *pdl, uint8_t p_num) {
   if (p_num == 1)
     pdl->x = PADDLE_MARGIN;
   else if (p_num == 2)
@@ -38,8 +36,6 @@ static void init_player(const PongGame *game, Player *player, uint8_t p_num) {
   pdl->width = PADDLE_WIDTH;
   pdl->height = PADDLE_HEIGHT;
   pdl->speed = 0;
-
-  player->score = 0;
 }
 
 static void init_fonts(GameResources *res) {
@@ -48,6 +44,17 @@ static void init_fonts(GameResources *res) {
   InitFontx(res->small_font, fonts[0], "");
   InitFontx(res->default_font, fonts[1], "");
   InitFontx(res->large_font, fonts[2], "");
+}
+
+void restart_game(PongGame *game) {
+  game->player1.score = 0;
+  game->player2.score = 0;
+
+  init_paddle(game, &game->player1.paddle, 1);
+  init_paddle(game, &game->player2.paddle, 2);
+  init_ball(game, &game->ball);
+
+  game->state = GAME_STATE_PLAYING;
 }
 
 void init_game(PongGame *game, TFT_t *dev) {
@@ -65,11 +72,7 @@ void init_game(PongGame *game, TFT_t *dev) {
   game->resources.background_color = BLACK;
   init_fonts(&game->resources);
 
-  init_player(game, &game->player1, 1);
-  init_player(game, &game->player2, 2);
-
-  init_ball(game, &game->ball);
-  game->state = GAME_STATE_PLAYING;
+  restart_game(game);
 }
 
 static void clamp_paddle(const PongGame *game, Paddle *p) {
