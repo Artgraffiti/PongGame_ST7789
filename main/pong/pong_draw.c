@@ -65,6 +65,13 @@ static void draw_game_over(PongGame *game) {
                 (uint8_t *)"CONFIRM: Restart", WHITE);
 }
 
+static void draw_pause(PongGame *game) {
+  TFT_t *dev = game->display;
+
+  lcdDrawString(dev, game->resources.large_font, dev->_width / 2 - 48,
+                dev->_height / 2, (uint8_t *)"PAUSED", RED);
+}
+
 static void draw_playing(PongGame *game) {
   TFT_t *dev = game->display;
 
@@ -77,10 +84,7 @@ static void draw_playing(PongGame *game) {
 
   draw_scores(game, game->player1.score, game->player2.score, WHITE);
 
-  // Draw pause state
-  if (game->state == GAME_STATE_PAUSED)
-    lcdDrawString(dev, game->resources.large_font, dev->_width / 2 - 48,
-                  dev->_height / 2, (uint8_t *)"PAUSED", RED);
+  if (game->state == GAME_STATE_PAUSED) draw_pause(game);
 }
 
 void draw_game(PongGame *game) {
