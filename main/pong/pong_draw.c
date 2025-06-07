@@ -6,7 +6,7 @@
 #include "pong_types.h"
 #include "st7789.h"
 
-const static char *TAG = __FILE__;
+const static char *TAG = __FILE_NAME__;
 
 static void draw_midcourt_line(PongGame *game, uint16_t color) {
   TFT_t *dev = game->display;

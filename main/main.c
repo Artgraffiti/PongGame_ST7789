@@ -8,7 +8,7 @@
 #include "fs.h"
 #include "kb.h"
 #include "pong/pong_draw.h"
-#include "pong/pong_game.h"
+#include "pong/pong_engine.h"
 #include "pong/pong_types.h"
 
 const static char *TAG = "main";
