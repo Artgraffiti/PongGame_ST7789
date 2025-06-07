@@ -153,6 +153,15 @@ static void handle_paddle_collision(PongGame *game, const Paddle *p,
   }
 }
 
+static void move_ball(Ball *ball) {
+  ball->x += ball->speed_x * ball->speed_multiplier;
+  ball->y += ball->speed_y * ball->speed_multiplier;
+}
+
+static void move_paddle(Paddle *paddle) {
+  paddle->y += paddle->speed;
+}
+
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;
 
@@ -160,16 +169,13 @@ void update_game(PongGame *game) {
   Paddle *p2 = &game->player2.paddle;
   Ball *ball = &game->ball;
 
-  // Move paddles
-  p1->y += p1->speed;
-  p2->y += p2->speed;
+  move_paddle(p1);
+  move_paddle(p2);
 
   clamp_paddle(game, p1);
   clamp_paddle(game, p2);
 
-  // Move ball
-  ball->x += ball->speed_x * ball->speed_multiplier;
-  ball->y += ball->speed_y * ball->speed_multiplier;
+  move_ball(ball);
 
   check_ball_wall_collision(game, ball);
 
