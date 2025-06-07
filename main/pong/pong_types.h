@@ -40,6 +40,7 @@ typedef struct {
   int16_t size;
   float speed_x;
   float speed_y;
+  float speed_multiplier;
 } Ball;
 
 typedef struct {
@@ -66,7 +67,6 @@ typedef struct {
   Player player1;
   Player player2;
   Ball ball;
-  float ball_speed_multiplier;
   GameState state;
   GameResources resources;
   GameFieldSize field_size;

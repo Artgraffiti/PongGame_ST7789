@@ -1,26 +1,33 @@
 #include "pong_engine.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "esp_log.h"
 #include "pong_types.h"
 #include "pong_utils.h"
 #include "st7789.h"
+#include "time.h"
 
 const static char *TAG = __FILE_NAME__;
 
-static void init_ball(PongGame *game, Ball *ball) {
-  uint16_t width = game->field_size.width;
-  uint16_t height = game->field_size.height;
+static void reset_ball(const PongGame *game, Ball *ball, int8_t direction) {
+  const uint16_t f_width = game->field_size.width;
+  const uint16_t f_height = game->field_size.height;
 
-  ball->x = width / 2;
-  ball->y = height / 2;
-  ball->size = BALL_SIZE;
-  ball->speed_x = INITIAL_BALL_SPEED_X * (rand() % 2 ? 1 : -1);
+  ball->x = f_width / 2;
+  ball->y = f_height / 2;
+  ball->speed_x = INITIAL_BALL_SPEED_X * direction;
   ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
 }
 
-static void init_player(PongGame *game, Player *player, uint8_t p_num) {
+static void init_ball(const PongGame *game, Ball *ball) {
+  ball->size = BALL_SIZE;
+  ball->speed_multiplier = 1.0f;
+  reset_ball(game, ball, (rand() % 2 ? 1 : -1));
+}
+
+static void init_player(const PongGame *game, Player *player, uint8_t p_num) {
   Paddle *pdl = &player->paddle;
 
   if (p_num == 1)
@@ -44,6 +51,8 @@ static void init_fonts(GameResources *res) {
 }
 
 void init_game(PongGame *game, TFT_t *dev) {
+  srand(time(NULL));
+
   if (dev == NULL) return;
   game->display = dev;
 
@@ -60,22 +69,10 @@ void init_game(PongGame *game, TFT_t *dev) {
   init_player(game, &game->player2, 2);
 
   init_ball(game, &game->ball);
-
-  game->ball_speed_multiplier = 1.0f;
-
   game->state = GAME_STATE_PLAYING;
 }
 
-static void reset_ball(PongGame *game, int8_t direction) {
-  Ball *ball = &game->ball;
-
-  ball->x = game->field_size.width / 2 - ball->size / 2;
-  ball->y = game->field_size.height / 2 - ball->size / 2;
-  ball->speed_x = INITIAL_BALL_SPEED_X * direction;
-  ball->speed_y = INITIAL_BALL_SPEED_Y * (rand() % 2 ? 1 : -1);
-}
-
-static void clamp_paddle(PongGame *game, Paddle *p) {
+static void clamp_paddle(const PongGame *game, Paddle *p) {
   uint16_t height = game->field_size.height;
 
   if (p->y < 0) p->y = 0;
@@ -89,7 +86,7 @@ static void check_winner(PongGame *game) {
   }
 }
 
-static void check_ball_wall_collision(PongGame *game, Ball *ball) {
+static void check_ball_wall_collision(const PongGame *game, Ball *ball) {
   int ball_top = ball->y - ball->size / 2;
   int ball_bottom = ball->y + ball->size / 2;
 
@@ -104,27 +101,26 @@ static void check_ball_wall_collision(PongGame *game, Ball *ball) {
   }
 }
 
-static void check_ball_out_of_bounds(PongGame *game) {
+static void check_ball_out_of_bounds(PongGame *game, Ball *ball) {
   const int width = game->field_size.width;
 
   if (game->ball.x < 0) {
     game->player2.score++;
-    reset_ball(game, 1);
+    reset_ball(game, ball, 1);
     ESP_LOGI(TAG, "ball x: %d y: %d", game->ball.x, game->ball.y);
 
     ESP_LOGI(TAG, "Point for Player 2");
   } else if (game->ball.x > width) {
     game->player1.score++;
-    reset_ball(game, -1);
+    reset_ball(game, ball, 1);
     ESP_LOGI(TAG, "ball x: %d y: %d", game->ball.x, game->ball.y);
 
     ESP_LOGI(TAG, "Point for Player 1");
   }
 }
 
-static void clamp_ball_speed(PongGame *game) {
-  if (game->ball_speed_multiplier > MAX_SPEED)
-    game->ball_speed_multiplier = MAX_SPEED;
+static void clamp_ball_speed(const PongGame *game, Ball *ball) {
+  if (ball->speed_multiplier > MAX_SPEED) ball->speed_multiplier = MAX_SPEED;
 }
 
 static void handle_paddle_collision(PongGame *game, const Paddle *p,
@@ -145,7 +141,7 @@ static void handle_paddle_collision(PongGame *game, const Paddle *p,
       ESP_LOGI(TAG, "Ball collison with p%d", p_num);
       ball->x = p_right + ball->size / 2;
       ball->speed_x *= -1;
-      game->ball_speed_multiplier += SPEED_INCREASE;
+      ball->speed_multiplier += SPEED_INCREASE;
     }
   } else if (p_num == 2) {
     int p_left = calc_paddle_left(p);
@@ -154,7 +150,7 @@ static void handle_paddle_collision(PongGame *game, const Paddle *p,
       ESP_LOGI(TAG, "Ball collison with p%d", p_num);
       ball->x = p_left - ball->size / 2;
       ball->speed_x *= -1;
-      game->ball_speed_multiplier += SPEED_INCREASE;
+      ball->speed_multiplier += SPEED_INCREASE;
     }
   }
 }
@@ -174,16 +170,16 @@ void update_game(PongGame *game) {
   clamp_paddle(game, p2);
 
   // Move ball
-  ball->x += ball->speed_x * game->ball_speed_multiplier;
-  ball->y += ball->speed_y * game->ball_speed_multiplier;
+  ball->x += ball->speed_x * ball->speed_multiplier;
+  ball->y += ball->speed_y * ball->speed_multiplier;
 
   check_ball_wall_collision(game, ball);
 
   handle_paddle_collision(game, p1, 1);
   handle_paddle_collision(game, p2, 2);
 
-  clamp_ball_speed(game);
-  check_ball_out_of_bounds(game);
+  clamp_ball_speed(game, ball);
+  check_ball_out_of_bounds(game, ball);
 
   check_winner(game);
 }
