@@ -158,9 +158,7 @@ static void move_ball(Ball *ball) {
   ball->y += ball->speed_y * ball->speed_multiplier;
 }
 
-static void move_paddle(Paddle *paddle) {
-  paddle->y += paddle->speed;
-}
+static void move_paddle(Paddle *paddle) { paddle->y += paddle->speed; }
 
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;

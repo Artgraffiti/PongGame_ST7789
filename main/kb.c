@@ -45,38 +45,38 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
                       void *event_data) {
   button_state_info_t *state_info = (button_state_info_t *)event_data;
   PongGame *game = (PongGame *)handler_args;
+  bool pressed = state_info->state;
 
   if (id == BUTTON_LEFT_GPIO) {
-    game->player1.paddle.speed = state_info->state ? -PADDLE_SPEED : 0;
+    game->player1.paddle.speed = pressed ? -PADDLE_SPEED : 0;
     ESP_LOGI("LEFT", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+             pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_UP_GPIO) {
-    game->player2.paddle.speed = state_info->state ? -PADDLE_SPEED : 0;
-    ESP_LOGI("UP", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+    game->player2.paddle.speed = pressed ? -PADDLE_SPEED : 0;
+    ESP_LOGI("UP", "button %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_DOWN_GPIO) {
-    game->player1.paddle.speed = state_info->state ? PADDLE_SPEED : 0;
+    game->player1.paddle.speed = pressed ? PADDLE_SPEED : 0;
     ESP_LOGI("DOWN", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+             pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_RIGHT_GPIO) {
-    game->player2.paddle.speed = state_info->state ? PADDLE_SPEED : 0;
+    game->player2.paddle.speed = pressed ? PADDLE_SPEED : 0;
     ESP_LOGI("RIGHT", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+             pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CONFIRM_GPIO) {
-    if (state_info->state && game->state == GAME_STATE_GAME_OVER) {
+    if (pressed && game->state == GAME_STATE_GAME_OVER) {
       game->state = GAME_STATE_PLAYING;
       game->player1.score = 0;
       game->player2.score = 0;
     }
     ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+             pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CANCEL_GPIO) {
-    if (state_info->state) {
+    if (pressed) {
       if (game->state == GAME_STATE_PLAYING) {
         game->state = GAME_STATE_PAUSED;
       } else if (game->state == GAME_STATE_PAUSED) {
@@ -84,6 +84,6 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
       }
     }
     ESP_LOGI("CANCEL", "button %d: %s", (int)id,
-             state_info->state ? "PRESSED" : "RELEASED");
+             pressed ? "PRESSED" : "RELEASED");
   }
 }
