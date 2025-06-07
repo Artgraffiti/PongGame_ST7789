@@ -9,8 +9,8 @@
 #include "st7789.h"
 
 // Game configuration
-#define PADDLE_WIDTH 10
-#define PADDLE_HEIGHT 60
+#define PADDLE_WIDTH 8
+#define PADDLE_HEIGHT 56
 #define PADDLE_MARGIN 10
 #define BALL_SIZE 12
 #define INITIAL_BALL_SPEED_X 2

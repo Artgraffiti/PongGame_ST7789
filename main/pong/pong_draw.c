@@ -8,7 +8,7 @@
 
 const static char *TAG = __FILE_NAME__;
 
-static void draw_midcourt_line(PongGame *game, uint16_t color) {
+static void draw_midcourt_line(const PongGame *game, uint16_t color) {
   TFT_t *dev = game->display;
 
   for (int y = 0; y < dev->_height; y += 10) {
@@ -17,14 +17,14 @@ static void draw_midcourt_line(PongGame *game, uint16_t color) {
   }
 }
 
-static void draw_paddle(PongGame *game, Paddle paddle, uint16_t color) {
+static void draw_paddle(const PongGame *game, Paddle paddle, uint16_t color) {
   TFT_t *dev = game->display;
 
   lcdDrawFillRect(dev, paddle.x, paddle.y, paddle.x + paddle.width,
                   paddle.y + paddle.height, color);
 }
 
-static void draw_ball(PongGame *game, Ball ball, uint16_t color) {
+static void draw_ball(const PongGame *game, Ball ball, uint16_t color) {
   TFT_t *dev = game->display;
 
   lcdDrawFillCircle(dev, ball.x, ball.y, ball.size / 2, color);
@@ -68,17 +68,13 @@ static void draw_game_over(PongGame *game) {
 static void draw_playing(PongGame *game) {
   TFT_t *dev = game->display;
 
-  // Draw center line
   draw_midcourt_line(game, GRAY);
 
-  // Draw paddles
   draw_paddle(game, game->player1.paddle, game->resources.paddle_color);
   draw_paddle(game, game->player2.paddle, game->resources.paddle_color);
 
-  // Draw ball
   draw_ball(game, game->ball, game->resources.ball_color);
 
-  // Draw scores
   draw_scores(game, game->player1.score, game->player2.score, WHITE);
 
   // Draw pause state

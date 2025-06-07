@@ -107,13 +107,11 @@ static void check_ball_out_of_bounds(PongGame *game, Ball *ball) {
   if (game->ball.x < 0) {
     game->player2.score++;
     reset_ball(game, ball, 1);
-    ESP_LOGI(TAG, "ball x: %d y: %d", game->ball.x, game->ball.y);
 
     ESP_LOGI(TAG, "Point for Player 2");
   } else if (game->ball.x > width) {
     game->player1.score++;
-    reset_ball(game, ball, 1);
-    ESP_LOGI(TAG, "ball x: %d y: %d", game->ball.x, game->ball.y);
+    reset_ball(game, ball, -1);
 
     ESP_LOGI(TAG, "Point for Player 1");
   }
