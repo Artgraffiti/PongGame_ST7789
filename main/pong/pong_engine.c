@@ -124,44 +124,51 @@ static void clamp_ball_speed(const PongGame *game, Ball *ball) {
   if (ball->speed_multiplier > MAX_SPEED) ball->speed_multiplier = MAX_SPEED;
 }
 
-static void handle_paddle_collision(PongGame *game, const Paddle *p,
-                                    uint8_t p_num) {
-  Ball *ball = &game->ball;
-  int ball_top = calc_ball_top(ball);
-  int ball_bottom = calc_ball_bottom(ball);
-  int ball_left = calc_ball_left(ball);
-  int ball_right = calc_ball_right(ball);
-
-  int p_top = calc_paddle_top(p);
-  int p_bottom = calc_paddle_bottom(p);
-
-  if (p_num == 1) {
-    int p_right = calc_paddle_right(p);
-    if ((p_right >= ball_left) && (ball_bottom >= p_top) &&
-        (ball_top <= p_bottom)) {
-      ESP_LOGI(TAG, "Ball collison with p%d", p_num);
-      ball->x = p_right + ball->size / 2;
-      ball->speed_x *= -1;
-      ball->speed_multiplier += SPEED_INCREASE;
-    }
-  } else if (p_num == 2) {
-    int p_left = calc_paddle_left(p);
-    if ((ball_right >= p_left) && (ball_bottom >= p_top) &&
-        (ball_top <= p_bottom)) {
-      ESP_LOGI(TAG, "Ball collison with p%d", p_num);
-      ball->x = p_left - ball->size / 2;
-      ball->speed_x *= -1;
-      ball->speed_multiplier += SPEED_INCREASE;
-    }
-  }
-}
-
 static void move_ball(Ball *ball) {
   ball->x += ball->speed_x * ball->speed_multiplier;
   ball->y += ball->speed_y * ball->speed_multiplier;
 }
 
 static void move_paddle(Paddle *paddle) { paddle->y += paddle->speed; }
+
+static bool is_ball_colliding_with_paddle(const Ball *ball,
+                                          const Paddle *paddle) {
+  int ball_left = calc_ball_left(ball);
+  int ball_right = calc_ball_right(ball);
+  int ball_top = calc_ball_top(ball);
+  int ball_bottom = calc_ball_bottom(ball);
+
+  int paddle_left = calc_paddle_left(paddle);
+  int paddle_right = calc_paddle_right(paddle);
+  int paddle_top = calc_paddle_top(paddle);
+  int paddle_bottom = calc_paddle_bottom(paddle);
+
+  bool overlap_x = (ball_right >= paddle_left) && (ball_left <= paddle_right);
+  bool overlap_y = (ball_bottom >= paddle_top) && (ball_top <= paddle_bottom);
+
+  return overlap_x && overlap_y;
+}
+
+static void handle_paddle_collision(PongGame *game, const Paddle *paddle,
+                                    uint8_t p_num) {
+  Ball *ball = &game->ball;
+
+  if (!is_ball_colliding_with_paddle(ball, paddle)) return;
+
+  const int paddle_right = calc_paddle_right(paddle);
+  const int paddle_left = calc_paddle_left(paddle);
+
+  if (p_num == 1) {
+    ball->x = paddle_right + 1 + ball->size / 2;
+  } else if (p_num == 2) {
+    ball->x = paddle_left - 1 - ball->size / 2;
+  }
+
+  ball->speed_x = -ball->speed_x;
+  ball->speed_multiplier += SPEED_INCREASE;
+
+  ESP_LOGI(TAG, "Ball collided with paddle");
+}
 
 void update_game(PongGame *game) {
   if (game->state != GAME_STATE_PLAYING) return;
