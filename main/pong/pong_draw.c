@@ -73,8 +73,6 @@ static void draw_pause(PongGame *game) {
 }
 
 static void draw_playing(PongGame *game) {
-  TFT_t *dev = game->display;
-
   draw_midcourt_line(game, GRAY);
 
   draw_paddle(game, game->player1.paddle, game->resources.paddle_color);
