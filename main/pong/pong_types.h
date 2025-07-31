@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "fontx.h"
+#include "pong_menu.h"
 #include "st7789.h"
 
 // Game configuration
@@ -70,6 +71,7 @@ typedef struct {
   GameState state;
   GameResources resources;
   GameFieldSize field_size;
+  Menu *menu;
   TFT_t *display;
 } PongGame;
 

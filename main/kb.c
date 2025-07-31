@@ -3,6 +3,7 @@
 #include "button.h"
 #include "esp_log.h"
 #include "pong/pong_engine.h"
+#include "pong/pong_menu.h"
 #include "pong/pong_types.h"
 
 void kb_init(void *pvParameters) {
@@ -54,11 +55,19 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_UP_GPIO) {
-    game->player2.paddle.speed = pressed ? -PADDLE_SPEED : 0;
+    if (game->state == GAME_STATE_PLAYING) {
+      game->player2.paddle.speed = pressed ? -PADDLE_SPEED : 0;
+    } else if (game->state == GAME_STATE_PAUSED) {
+      if (pressed) menu_up(game->menu);
+    }
     ESP_LOGI("UP", "button %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_DOWN_GPIO) {
-    game->player1.paddle.speed = pressed ? PADDLE_SPEED : 0;
+    if (game->state == GAME_STATE_PLAYING) {
+      game->player1.paddle.speed = pressed ? PADDLE_SPEED : 0;
+    } else if (game->state == GAME_STATE_PAUSED) {
+      if (pressed) menu_down(game->menu);
+    }
     ESP_LOGI("DOWN", "button %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
 
@@ -68,8 +77,10 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CONFIRM_GPIO) {
-    if (pressed && game->state == GAME_STATE_GAME_OVER) {
-      restart_game(game);
+    if (game->state == GAME_STATE_GAME_OVER) {
+      if (pressed) restart_game(game);
+    } else if (game->state == GAME_STATE_PAUSED) {
+      if (pressed) menu_select(game->menu, game);
     }
     ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");

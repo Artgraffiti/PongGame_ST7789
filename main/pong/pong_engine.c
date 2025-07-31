@@ -1,9 +1,11 @@
 #include "pong_engine.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "esp_log.h"
+#include "pong/pong_menu.h"
 #include "pong_types.h"
 #include "pong_utils.h"
 #include "st7789.h"
@@ -57,6 +59,16 @@ void restart_game(PongGame *game) {
   game->state = GAME_STATE_PLAYING;
 }
 
+void menu_restart_game(void *pvParameters) {
+  PongGame *game = (PongGame *)pvParameters;
+  restart_game(game);
+}
+
+void nop(void *pvParameters) {
+  PongGame *game = (PongGame *)pvParameters;
+  printf("NOP\n");
+}
+
 void init_game(PongGame *game, TFT_t *dev) {
   srand(time(NULL));
 
@@ -71,6 +83,11 @@ void init_game(PongGame *game, TFT_t *dev) {
   game->resources.ball_color = GREEN;
   game->resources.background_color = BLACK;
   init_fonts(&game->resources);
+
+  // Menu create
+  const char *titles[] = {"Restart game", "Settings", "Help"};
+  MenuItemAction actions[] = {menu_restart_game, nop, nop};
+  game->menu = create_menu(titles, actions, 3);
 
   restart_game(game);
 }

@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "esp_log.h"
+#include "pong/pong_menu.h"
 #include "pong_types.h"
 #include "st7789.h"
 
@@ -65,11 +66,34 @@ static void draw_game_over(PongGame *game) {
                 (uint8_t *)"CONFIRM: Restart", WHITE);
 }
 
-static void draw_pause(PongGame *game) {
+static void draw_menu(PongGame *game) {
   TFT_t *dev = game->display;
+  Menu *menu = game->menu;
 
-  lcdDrawString(dev, game->resources.large_font, dev->_width / 2 - 48,
-                dev->_height / 2, (uint8_t *)"PAUSED", RED);
+  uint16_t x = 50;
+  uint16_t y_start = 100;
+  uint16_t line_height = 22;
+  uint16_t text_color = WHITE;
+  uint16_t bg_color = BLACK;
+
+  lcdDrawString(dev, game->resources.large_font, 50, 80, (uint8_t *)"PONG MENU",
+                BLUE);
+
+  for (int i = 0; i < menu->count; i++) {
+    uint16_t y = y_start + i * line_height;
+
+    if (i == menu->selected) {
+      text_color = BLACK;
+      bg_color = WHITE;
+      lcdDrawFillRect(dev, x, y - line_height, x + 150, y, bg_color);
+    } else {
+      text_color = WHITE;
+      bg_color = BLACK;
+    }
+
+    lcdDrawString(dev, game->resources.default_font, x, y,
+                  (uint8_t *)menu->items[i].title, text_color);
+  }
 }
 
 static void draw_playing(PongGame *game) {
@@ -82,7 +106,7 @@ static void draw_playing(PongGame *game) {
 
   draw_scores(game, game->player1.score, game->player2.score, WHITE);
 
-  if (game->state == GAME_STATE_PAUSED) draw_pause(game);
+  if (game->state == GAME_STATE_PAUSED) draw_menu(game);
 }
 
 void draw_game(PongGame *game) {
