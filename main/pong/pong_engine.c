@@ -6,6 +6,7 @@
 
 #include "esp_log.h"
 #include "pong/pong_menu.h"
+#include "pong/pong_menu_actions.h"
 #include "pong_types.h"
 #include "pong_utils.h"
 #include "st7789.h"
@@ -59,16 +60,6 @@ void restart_game(PongGame *game) {
   game->state = GAME_STATE_PLAYING;
 }
 
-void menu_restart_game(void *pvParameters) {
-  PongGame *game = (PongGame *)pvParameters;
-  restart_game(game);
-}
-
-void nop(void *pvParameters) {
-  PongGame *game = (PongGame *)pvParameters;
-  printf("NOP\n");
-}
-
 void init_game(PongGame *game, TFT_t *dev) {
   srand(time(NULL));
 
@@ -85,9 +76,11 @@ void init_game(PongGame *game, TFT_t *dev) {
   init_fonts(&game->resources);
 
   // Menu create
-  const char *titles[] = {"Restart game", "Settings", "Help"};
-  MenuItemAction actions[] = {menu_restart_game, nop, nop};
-  game->menu = create_menu(titles, actions, 3);
+  const char *titles[] = {"Resume", "Restart game", "Settings",
+                          "Bluetooth OFF"};
+  MenuItemAction actions[] = {menu_resume_game, menu_restart_game, menu_nop,
+                              menu_toggle_bluetooth};
+  game->menu = create_menu(titles, actions, 4);
 
   restart_game(game);
 }

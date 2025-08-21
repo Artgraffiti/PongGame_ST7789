@@ -6,6 +6,8 @@
 #include "pong/pong_menu.h"
 #include "pong/pong_types.h"
 
+const static char *TAG = "KEYBOARD";
+
 void kb_init(void *pvParameters) {
   button_debounce_cfg debounce_cfg = {
       .debounce_checks = DEBOUNCE_CHECKS,
@@ -51,7 +53,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
 
   if (id == BUTTON_LEFT_GPIO) {
     game->player1.paddle.speed = pressed ? -PADDLE_SPEED : 0;
-    ESP_LOGI("LEFT", "button %d: %s", (int)id,
+    ESP_LOGI(TAG, "button(LEFT) %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_UP_GPIO) {
@@ -60,7 +62,8 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_up(game->menu);
     }
-    ESP_LOGI("UP", "button %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(UP) %d: %s", (int)id,
+             pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_DOWN_GPIO) {
     if (game->state == GAME_STATE_PLAYING) {
@@ -68,12 +71,12 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_down(game->menu);
     }
-    ESP_LOGI("DOWN", "button %d: %s", (int)id,
+    ESP_LOGI(TAG, "button(DOWN) %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_RIGHT_GPIO) {
     game->player2.paddle.speed = pressed ? PADDLE_SPEED : 0;
-    ESP_LOGI("RIGHT", "button %d: %s", (int)id,
+    ESP_LOGI(TAG, "button(RIGHT) %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CONFIRM_GPIO) {
@@ -82,7 +85,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_select(game->menu, game);
     }
-    ESP_LOGI("CONFIRM", "button %d: %s", (int)id,
+    ESP_LOGI(TAG, "button(CONFIRM) %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CANCEL_GPIO) {
@@ -93,7 +96,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
         game->state = GAME_STATE_PLAYING;
       }
     }
-    ESP_LOGI("CANCEL", "button %d: %s", (int)id,
+    ESP_LOGI(TAG, "button(CANCEL) %d: %s", (int)id,
              pressed ? "PRESSED" : "RELEASED");
   }
 }

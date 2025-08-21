@@ -1,12 +1,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "display.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
-#include "fs.h"
-#include "kb.h"
+#include "freertos/idf_additions.h"
+#include "freertos/projdefs.h"
+#include "nvs_flash.h"
+#include "periph/ble.h"
+#include "periph/display.h"
+#include "periph/fs.h"
+#include "periph/kb.h"
 #include "pong/pong_draw.h"
 #include "pong/pong_engine.h"
 #include "pong/pong_types.h"
@@ -55,13 +59,40 @@ void game_task(void *pvParameters) {
 }
 
 void app_main(void) {
+  esp_err_t ret;
   ESP_LOGI(TAG, "Hello, User!!:)");
 
+  // Initialize NVS.
+  ret = nvs_flash_init();
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+      ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  }
+  ESP_ERROR_CHECK(ret);
+
+  // Initialize SPIFFS
   ESP_LOGI(TAG, "Initializing SPIFFS");
   ESP_ERROR_CHECK(mountSPIFFS("/fonts", "storage1", 3));
   listSPIFFS("/fonts/");
 
   esp_event_loop_create_default();
 
-  xTaskCreate(game_task, "game_task", 1024 * 6, NULL, 3, NULL);
+  xTaskCreate(game_task, "game_task", 1024 * 3, NULL, 3, NULL);
+
+  vTaskDelay(pdMS_TO_TICKS(1000));
+
+  // Check available heap memory
+  ESP_LOGI(TAG, "Default: %u", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
+  ESP_LOGI(TAG, "Internal: %u", heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
+  ESP_LOGI(TAG, "DMA: %u", heap_caps_get_free_size(MALLOC_CAP_DMA));
+  ESP_LOGI(TAG, "SPIRAM: %u", heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
+
+  ESP_LOGI(TAG, "Largest block (internal): %u",
+           heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
+  ESP_LOGI(TAG, "Largest block (default): %u",
+           heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+
+  // Initialize Bluetooth
+  ESP_ERROR_CHECK(init_ble());
 }
