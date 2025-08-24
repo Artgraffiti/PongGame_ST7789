@@ -23,6 +23,7 @@ static uint8_t service_uuid128[16] = {
 };
 
 static uint8_t adv_config_done = 0;
+bool advertising_enabled = false;
 #define ADV_CONFIG_FLAG (1 << 0)
 #define SCAN_RSP_CONFIG_FLAG (1 << 1)
 
@@ -122,6 +123,35 @@ esp_err_t init_ble() {
   return ret;
 }
 
+esp_err_t start_ble_advertising(void) {
+  esp_err_t ret = ESP_OK;
+  if (!advertising_enabled) {
+    ret = esp_ble_gap_start_advertising(&adv_params);
+    if (ret == ESP_OK) {
+      advertising_enabled = true;
+      ESP_LOGI(GAP_TAG, "BLE advertising started");
+    } else {
+      ESP_LOGE(GAP_TAG, "Failed to start advertising: %s",
+               esp_err_to_name(ret));
+    }
+  }
+  return ret;
+}
+
+esp_err_t stop_ble_advertising(void) {
+  esp_err_t ret = ESP_OK;
+  if (advertising_enabled) {
+    ret = esp_ble_gap_stop_advertising();
+    if (ret == ESP_OK) {
+      advertising_enabled = false;
+      ESP_LOGI(GAP_TAG, "BLE advertising stopped");
+    } else {
+      ESP_LOGE(GAP_TAG, "Failed to stop advertising: %s", esp_err_to_name(ret));
+    }
+  }
+  return ret;
+}
+
 static char *esp_auth_req_to_str(esp_ble_auth_req_t auth_req) {
   char *auth_str = NULL;
   switch (auth_req) {
@@ -159,7 +189,7 @@ static char *esp_auth_req_to_str(esp_ble_auth_req_t auth_req) {
 
 void gap_event_handler(esp_gap_ble_cb_event_t event,
                        esp_ble_gap_cb_param_t *param) {
-  ESP_LOGI(GAP_TAG, "event = %d", event);
+  ESP_LOGD(GAP_TAG, "event = %d", event);
   switch (event) {
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
       ESP_LOGI(GAP_TAG, "Adv data set complete, status %d",
@@ -217,6 +247,6 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
 
 void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
                          esp_ble_gatts_cb_param_t *param) {
-  ESP_LOGI(GATTS_TAG, "event = %d", event);
+  ESP_LOGD(GATTS_TAG, "event = %d", event);
   ESP_LOGW(GATTS_TAG, "Unhandled or unknown GATTS event: %d", event);
 }

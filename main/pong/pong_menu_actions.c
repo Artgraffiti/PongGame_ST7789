@@ -10,28 +10,34 @@ extern esp_ble_adv_params_t adv_params;
 
 void menu_resume_game(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
+  ESP_LOGI(TAG, "Resuming game");
   game->state = GAME_STATE_PLAYING;
 }
 
 void menu_restart_game(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
+  ESP_LOGI(TAG, "Restarting game");
   restart_game(game);
 }
 
 void menu_toggle_bluetooth(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
-  static bool bluetooth_enabled = false;
-  bluetooth_enabled = !bluetooth_enabled;
+  esp_err_t ret;
+  extern bool advertising_enabled;
 
-  if (bluetooth_enabled) {
-    ESP_LOGI(TAG, "Bluetooth adv enabled");
-    esp_ble_gap_start_advertising(&adv_params);
+  if (!advertising_enabled) {
+    ret = start_ble_advertising();
   } else {
-    ESP_LOGI(TAG, "Bluetooth adv disabled");
-    esp_ble_gap_stop_advertising();
+    ret = stop_ble_advertising();
   }
-  sprintf(game->menu->items[3].title, "Bluetooth %s",
-          bluetooth_enabled ? "ON" : "OFF");
+
+  if (ret == ESP_OK) {
+    ESP_LOGI(TAG, "Bluetooth advertising %s", advertising_enabled ? "enabled" : "disabled");
+    sprintf(game->menu->items[3].title, "Bluetooth %s",
+            advertising_enabled ? "ON" : "OFF");
+  } else {
+    ESP_LOGE(TAG, "Failed to toggle bluetooth: %s", esp_err_to_name(ret));
+  }
 }
 
 void menu_nop(void *pvParameters) {
