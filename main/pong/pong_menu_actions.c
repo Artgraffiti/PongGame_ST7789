@@ -6,8 +6,6 @@
 
 const static char *TAG = "PONG_MENU_ACTIONS";
 
-extern esp_ble_adv_params_t adv_params;
-
 void menu_resume_game(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
   ESP_LOGI(TAG, "Resuming game");
