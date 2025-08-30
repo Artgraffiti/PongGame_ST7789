@@ -32,7 +32,8 @@ void menu_toggle_bluetooth(void *pvParameters) {
   }
 
   if (ret == ESP_OK) {
-    ESP_LOGI(TAG, "Bluetooth advertising %s", advertising_enabled ? "enabled" : "disabled");
+    ESP_LOGI(TAG, "Bluetooth advertising %s",
+             advertising_enabled ? "enabled" : "disabled");
     sprintf(game->menu->items[3].title, "Bluetooth %s",
             advertising_enabled ? "ON" : "OFF");
   } else {

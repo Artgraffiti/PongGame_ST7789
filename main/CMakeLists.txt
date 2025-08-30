@@ -6,6 +6,8 @@ idf_component_register(SRCS
                         "periph/fs.c"
                         "periph/kb.c"
                         "periph/ble.c"
+                        "periph/ble_server.c"
+                        "periph/ble_client.c"
                         "periph/display.c"
                         "main.c"
                     INCLUDE_DIRS
