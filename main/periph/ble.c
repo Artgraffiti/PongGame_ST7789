@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "ble_client.h"
 #include "ble_server.h"
 #include "esp_bt.h"
 #include "esp_bt_main.h"
@@ -51,13 +52,29 @@ esp_err_t init_ble() {
     ESP_LOGE(TAG, "gatts register error, error code = %x", ret);
     return ret;
   }
+  ret = esp_ble_gattc_register_callback(gattc_event_handler);
+  if (ret) {
+    ESP_LOGE(TAG, "gattc register failed, error code = %x", ret);
+    return ret;
+  }
+
   ret = esp_ble_gap_register_callback(gap_event_handler);
   if (ret) {
     ESP_LOGE(TAG, "gap register error, error code = %x", ret);
     return ret;
   }
 
-  init_ble_server();
+  ret = init_ble_server();
+  if (ret) {
+    ESP_LOGE(TAG, "init_ble_server failed: %d", ret);
+    return ret;
+  }
+
+  ret = init_ble_client();
+  if (ret) {
+    ESP_LOGE(TAG, "init_ble_client failed: %d", ret);
+    return ret;
+  }
 
   return ret;
 }
@@ -101,14 +118,17 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
                        esp_ble_gap_cb_param_t *param) {
   ESP_LOGD(GAP_TAG, "event = %d", event);
   switch (event) {
+    // BLE server events
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
       ESP_LOGI(GAP_TAG, "Adv data set complete, status %d",
                param->adv_data_cmpl.status);
       break;
+
     case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
       ESP_LOGI(GAP_TAG, "Scan response data set complete, status %d",
                param->scan_rsp_data_cmpl.status);
       break;
+
     case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
       // advertising start complete event to indicate advertising start
       // successfully or failed
@@ -119,6 +139,7 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
       }
       ESP_LOGI(GAP_TAG, "Advertising start successfully");
       break;
+
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
       if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
         ESP_LOGE(GAP_TAG, "Advertising stop failed, status %d",
@@ -127,12 +148,14 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
       }
       ESP_LOGI(GAP_TAG, "Advertising stop successfully");
       break;
+
     case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
       ESP_LOGI(GAP_TAG, "Packet length update, status %d, rx %d, tx %d",
                param->pkt_data_length_cmpl.status,
                param->pkt_data_length_cmpl.params.rx_len,
                param->pkt_data_length_cmpl.params.tx_len);
       break;
+
     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
       esp_bd_addr_t bd_addr;
       memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr,
@@ -150,6 +173,23 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
       }
       break;
     }
+
+    // BLE client events
+    case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
+      ESP_LOGI(GAP_TAG, "Scan param set complete, status %d",
+               param->scan_param_cmpl.status);
+      break;
+    }
+
+    case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
+      if (param->scan_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
+        ESP_LOGE(GAP_TAG, "Scanning start failed, status %x",
+                 param->scan_start_cmpl.status);
+        break;
+      }
+      ESP_LOGI(GAP_TAG, "Scanning start successfully");
+      break;
+
     default:
       ESP_LOGW(GAP_TAG, "Unhandled or unknown GAP event: %d", event);
       break;

@@ -76,9 +76,10 @@ esp_err_t init_ble_server(void) {
   return ret;
 }
 
-esp_err_t start_ble_advertising(void) {
-  esp_err_t ret = ESP_OK;
-  if (!advertising_enabled) {
+void start_ble_advertising(void) {
+  esp_err_t ret;
+
+  if (!advertising_enabled && adv_config_done) {
     ret = esp_ble_gap_start_advertising(&adv_params);
     if (ret == ESP_OK) {
       advertising_enabled = true;
@@ -87,11 +88,11 @@ esp_err_t start_ble_advertising(void) {
       ESP_LOGE(TAG, "Failed to start advertising: %s", esp_err_to_name(ret));
     }
   }
-  return ret;
 }
 
-esp_err_t stop_ble_advertising(void) {
-  esp_err_t ret = ESP_OK;
+void stop_ble_advertising(void) {
+  esp_err_t ret;
+
   if (advertising_enabled) {
     ret = esp_ble_gap_stop_advertising();
     if (ret == ESP_OK) {
@@ -101,7 +102,6 @@ esp_err_t stop_ble_advertising(void) {
       ESP_LOGE(TAG, "Failed to stop advertising: %s", esp_err_to_name(ret));
     }
   }
-  return ret;
 }
 
 void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,

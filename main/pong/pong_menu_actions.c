@@ -1,7 +1,8 @@
 #include "pong_menu_actions.h"
 
 #include "esp_log.h"
-#include "periph/ble.h"
+#include "periph/ble_client.h"
+#include "periph/ble_server.h"
 #include "pong_engine.h"
 
 const static char *TAG = "PONG_MENU_ACTIONS";
@@ -20,23 +21,25 @@ void menu_restart_game(void *pvParameters) {
 
 void menu_toggle_bluetooth(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
-  esp_err_t ret;
   extern bool advertising_enabled;
 
   if (!advertising_enabled) {
-    ret = start_ble_advertising();
+    start_ble_advertising();
   } else {
-    ret = stop_ble_advertising();
+    stop_ble_advertising();
   }
+  ESP_LOGI(TAG, "Bluetooth advertising %s",
+           advertising_enabled ? "enabled" : "disabled");
 
-  if (ret == ESP_OK) {
-    ESP_LOGI(TAG, "Bluetooth advertising %s",
-             advertising_enabled ? "enabled" : "disabled");
-    sprintf(game->menu->items[3].title, "Bluetooth %s",
-            advertising_enabled ? "ON" : "OFF");
+  if (!is_scanning) {
+    start_ble_scan();
   } else {
-    ESP_LOGE(TAG, "Failed to toggle bluetooth: %s", esp_err_to_name(ret));
+    stop_ble_scan();
   }
+  ESP_LOGI(TAG, "%s BLE scan", is_scanning ? "Started" : "Stopped");
+
+  sprintf(game->menu->items[3].title, "Bluetooth %s",
+          advertising_enabled ? "ON" : "OFF");
 }
 
 void menu_nop(void *pvParameters) {
