@@ -190,6 +190,15 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
       ESP_LOGI(GAP_TAG, "Scanning start successfully");
       break;
 
+    case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
+      if (param->scan_stop_cmpl.status != ESP_BT_STATUS_SUCCESS) {
+        ESP_LOGE(GAP_TAG, "Scanning stop failed, status %x",
+                 param->scan_stop_cmpl.status);
+        break;
+      }
+      ESP_LOGI(GAP_TAG, "Scanning stop successfully");
+      break;
+
     default:
       ESP_LOGW(GAP_TAG, "Unhandled or unknown GAP event: %d", event);
       break;

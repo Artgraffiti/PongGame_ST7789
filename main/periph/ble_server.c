@@ -3,22 +3,23 @@
 #include "ble.h"
 #include "esp_log.h"
 
-const static char *TAG = "BLE_SERVER";
-const static char *GATTS_TAG = "BLE_GATTS";
+static const char *TAG = "BLE_SERVER";
+static const char *GATTS_TAG = "BLE_GATTS";
 
-static uint8_t service_uuid128[16] = {
-    /* LSB
-       <-------------------------------------------------------------------------------->
-       MSB */
+static uint8_t SERVICE_UUID128[16] = {
+    /* LSB <----------------------------> MSB */
     // first uuid, 16bit, [12],[13] is the value
     0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee,
     0xee, 0xee, 0xee, 0xee, 0x00, 0x00, 0xdd, 0xdd,
 };
 
+typedef enum {
+  ADV_CONFIG_FLAG = (1 << 0),
+  SCAN_RSP_CONFIG_FLAG = (1 << 1)
+} adv_config_flags_t;
+
 static uint8_t adv_config_done = 0;
 bool advertising_enabled = false;
-#define ADV_CONFIG_FLAG (1 << 0)
-#define SCAN_RSP_CONFIG_FLAG (1 << 1)
 
 static esp_ble_adv_data_t adv_data = {
     .set_scan_rsp = false,
@@ -29,8 +30,8 @@ static esp_ble_adv_data_t adv_data = {
     .appearance = 0x00,
     .manufacturer_len = 0,
     .p_manufacturer_data = NULL,
-    .service_uuid_len = sizeof(service_uuid128),
-    .p_service_uuid = service_uuid128,
+    .service_uuid_len = sizeof(SERVICE_UUID128),
+    .p_service_uuid = SERVICE_UUID128,
     .flag = (ESP_BLE_ADV_FLAG_GEN_DISC | ESP_BLE_ADV_FLAG_BREDR_NOT_SPT),
 };
 
@@ -56,51 +57,61 @@ esp_ble_adv_params_t adv_params = {
 esp_err_t init_ble_server(void) {
   esp_err_t ret;
 
-  // Config advertising
-  esp_ble_gap_set_device_name(DEVICE_NAME);
+  ret = esp_ble_gap_set_device_name(DEVICE_NAME);
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to set device name: %s", esp_err_to_name(ret));
+    return ret;
+  }
 
   ret = esp_ble_gap_config_adv_data(&adv_data);
-  if (ret) {
-    ESP_LOGE(TAG, "config adv data failed, error code = %x", ret);
-  } else {
-    adv_config_done |= ADV_CONFIG_FLAG;
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Config adv data failed: %s", esp_err_to_name(ret));
+    return ret;
   }
+  adv_config_done |= ADV_CONFIG_FLAG;
 
   ret = esp_ble_gap_config_adv_data(&scan_rsp_data);
-  if (ret) {
-    ESP_LOGE(TAG, "rsp config adv data failed, error code = %x", ret);
-  } else {
-    adv_config_done |= SCAN_RSP_CONFIG_FLAG;
+  if (ret != ESP_OK) {
+    ESP_LOGE(TAG, "Config scan response failed: %s", esp_err_to_name(ret));
+    return ret;
   }
+  adv_config_done |= SCAN_RSP_CONFIG_FLAG;
 
-  return ret;
+  return ESP_OK;
 }
 
 void start_ble_advertising(void) {
-  esp_err_t ret;
+  if (advertising_enabled) {
+    ESP_LOGW(TAG, "Advertising already active");
+    return;
+  }
 
-  if (!advertising_enabled && adv_config_done) {
-    ret = esp_ble_gap_start_advertising(&adv_params);
-    if (ret == ESP_OK) {
-      advertising_enabled = true;
-      ESP_LOGI(TAG, "BLE advertising started");
-    } else {
-      ESP_LOGE(TAG, "Failed to start advertising: %s", esp_err_to_name(ret));
-    }
+  if (adv_config_done != (ADV_CONFIG_FLAG | SCAN_RSP_CONFIG_FLAG)) {
+    ESP_LOGW(TAG, "Advertising not configured properly");
+    return;
+  }
+
+  esp_err_t ret = esp_ble_gap_start_advertising(&adv_params);
+  if (ret == ESP_OK) {
+    advertising_enabled = true;
+    ESP_LOGI(TAG, "BLE advertising started");
+  } else {
+    ESP_LOGE(TAG, "Failed to start advertising: %s", esp_err_to_name(ret));
   }
 }
 
 void stop_ble_advertising(void) {
-  esp_err_t ret;
+  if (!advertising_enabled) {
+    ESP_LOGW(TAG, "Advertising not active");
+    return;
+  }
 
-  if (advertising_enabled) {
-    ret = esp_ble_gap_stop_advertising();
-    if (ret == ESP_OK) {
-      advertising_enabled = false;
-      ESP_LOGI(TAG, "BLE advertising stopped");
-    } else {
-      ESP_LOGE(TAG, "Failed to stop advertising: %s", esp_err_to_name(ret));
-    }
+  esp_err_t ret = esp_ble_gap_stop_advertising();
+  if (ret == ESP_OK) {
+    advertising_enabled = false;
+    ESP_LOGI(TAG, "BLE advertising stopped");
+  } else {
+    ESP_LOGE(TAG, "Failed to stop advertising: %s", esp_err_to_name(ret));
   }
 }
 
