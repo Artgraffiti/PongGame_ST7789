@@ -8,13 +8,16 @@
 
 static const char *TAG = "BLE_CLIENT";
 const static char *GATTC_TAG = "BLE_GATTC";
-bool is_scanning = false;
 
 #define PROFILE_PONG_APP_ID 0
 #define INVALID_HANDLE 0
 
+typedef enum {
+  SCAN_CONFIG_FLAG = (1 << 0),
+} scan_config_flags_t;
+
+bool is_scanning = false;
 static uint8_t scan_config_done = 0;
-#define SCAN_CONFIG_FLAG (1 << 0)
 
 static esp_ble_scan_params_t ble_scan_params = {
     .scan_type = BLE_SCAN_TYPE_ACTIVE,
@@ -37,9 +40,8 @@ esp_err_t init_ble_client(void) {
   if (ret) {
     ESP_LOGE(TAG, "Set scan params error, error code = %x", ret);
     return ret;
-  } else {
-    scan_config_done |= SCAN_CONFIG_FLAG;
   }
+  scan_config_done |= SCAN_CONFIG_FLAG;
 
   ESP_LOGI(TAG, "BLE client initialized successfully");
   return ESP_OK;
