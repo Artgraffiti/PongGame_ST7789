@@ -15,6 +15,8 @@
 #include "pong/pong_engine.h"
 #include "pong/pong_types.h"
 
+static SemaphoreHandle_t game_init_sem;
+
 const static char *TAG = "main";
 
 #ifdef FRAME_RATE
@@ -37,6 +39,9 @@ void game_task(void *pvParameters) {
   init_display(&dev);
   init_game(&game, &dev);
   kb_init(&game);
+
+  xSemaphoreGive(game_init_sem);
+  ESP_LOGI(TAG, "game_task: Initialization complete.");
 
   while (1) {
 #ifdef FRAME_RATE
@@ -62,10 +67,12 @@ void app_main(void) {
   esp_err_t ret;
   ESP_LOGI(TAG, "Hello, User!!:)");
 
+  game_init_sem = xSemaphoreCreateBinary();
+  configASSERT(game_init_sem);
+
   // Initialize NVS.
   ret = nvs_flash_init();
-  if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
-      ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
     ESP_ERROR_CHECK(nvs_flash_erase());
     ret = nvs_flash_init();
   }
@@ -80,7 +87,8 @@ void app_main(void) {
 
   xTaskCreate(game_task, "game_task", 1024 * 3, NULL, 3, NULL);
 
-  vTaskDelay(pdMS_TO_TICKS(1000));
+  ESP_LOGI(TAG, "Waiting for game_task initialization...");
+  xSemaphoreTake(game_init_sem, portMAX_DELAY);
 
   // Check available heap memory
   ESP_LOGI(TAG, "Default: %u", heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
@@ -88,10 +96,8 @@ void app_main(void) {
   ESP_LOGI(TAG, "DMA: %u", heap_caps_get_free_size(MALLOC_CAP_DMA));
   ESP_LOGI(TAG, "SPIRAM: %u", heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
 
-  ESP_LOGI(TAG, "Largest block (internal): %u",
-           heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
-  ESP_LOGI(TAG, "Largest block (default): %u",
-           heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
+  ESP_LOGI(TAG, "Largest block (internal): %u", heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
+  ESP_LOGI(TAG, "Largest block (default): %u", heap_caps_get_largest_free_block(MALLOC_CAP_DEFAULT));
 
   // Initialize Bluetooth
   ESP_ERROR_CHECK(init_ble());
