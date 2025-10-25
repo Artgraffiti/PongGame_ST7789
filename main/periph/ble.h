@@ -4,8 +4,6 @@
 #include "esp_err.h"
 #include "esp_gap_ble_api.h"
 
-#define DEVICE_NAME "PongGame BLE"
-
 esp_err_t init_ble();
 void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 

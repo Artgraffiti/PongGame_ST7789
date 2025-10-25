@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "esp_bt_defs.h"
 #include "esp_err.h"
 #include "esp_gap_ble_api.h"
 #include "esp_log.h"
@@ -9,9 +10,35 @@
 
 static const char *TAG = "BLE_CLIENT";
 const static char *GATTC_TAG = "BLE_GATTC";
+const static char *GATTC_PROFILE_TAG = "BLE_GATTC";
 
+#define PROFILE_NUM 1
 #define PROFILE_PONG_APP_ID 0
 #define INVALID_HANDLE 0
+
+extern char device_name[ESP_BLE_ADV_NAME_LEN_MAX];
+bool connect = false;
+
+static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param);
+
+struct gattc_profile_inst {
+  esp_gattc_cb_t gattc_cb;
+  uint16_t gattc_if;
+  uint16_t app_id;
+  uint16_t conn_id;
+  uint16_t service_start_handle;
+  uint16_t service_end_handle;
+  uint16_t char_handle;
+  esp_bd_addr_t remote_bda;
+};
+
+static struct gattc_profile_inst gl_profile_tab[PROFILE_NUM] = {
+    [PROFILE_PONG_APP_ID] =
+        {
+            .gattc_cb = gattc_profile_event_handler,
+            .gattc_if = ESP_GATT_IF_NONE,
+        },
+};
 
 typedef enum {
   SCAN_CONFIG_FLAG = (1 << 0),
@@ -101,6 +128,33 @@ void stop_ble_scan(void) {
   }
 }
 
+void handle_device_discovery(esp_ble_gap_cb_param_t *scan_result, uint8_t *adv_name, uint8_t adv_name_len) {
+  if (adv_name == NULL) {
+    return;
+  }
+
+  if (strlen(device_name) == adv_name_len && strncmp((char *)adv_name, device_name, adv_name_len) == 0) {
+    ESP_LOGI(TAG, "Device found: %s", device_name);
+
+    if (connect == false) {
+      connect = true;
+      ESP_LOGI(TAG, "Target device found. Connecting...");
+
+      stop_ble_scan();
+      esp_ble_gatt_creat_conn_params_t creat_conn_params = {0};
+
+      memcpy(&creat_conn_params.remote_bda, scan_result->scan_rst.bda, ESP_BD_ADDR_LEN);
+      creat_conn_params.remote_addr_type = scan_result->scan_rst.ble_addr_type;
+      creat_conn_params.own_addr_type = BLE_ADDR_TYPE_PUBLIC;
+      creat_conn_params.is_direct = true;
+      creat_conn_params.is_aux = false;
+      creat_conn_params.phy_mask = 0x0;
+
+      esp_ble_gattc_enh_open(gl_profile_tab[PROFILE_PONG_APP_ID].gattc_if, &creat_conn_params);
+    }
+  }
+}
+
 void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param) {
   ESP_LOGD(TAG, "GATTC event = %d", event);
 
@@ -111,6 +165,15 @@ void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp
 
     default:
       ESP_LOGW(GATTC_TAG, "Unhandled GATTC event: %d", event);
+      break;
+  }
+}
+
+static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param) {
+  esp_ble_gattc_cb_param_t *p_data = (esp_ble_gattc_cb_param_t *)param;
+  switch (event) {
+    default:
+      ESP_LOGW(GATTC_PROFILE_TAG, "Unhandled or unknown GATTC_PROFILE_TAG event: %d", event);
       break;
   }
 }

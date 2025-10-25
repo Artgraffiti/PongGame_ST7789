@@ -1,16 +1,17 @@
 #include "ble_server.h"
 
+#include <stdlib.h>
+#include <time.h>
+
 #include "ble.h"
+#include "esp_gap_ble_api.h"
 #include "esp_log.h"
 
 static const char *TAG = "BLE_SERVER";
 static const char *GATTS_TAG = "BLE_GATTS";
 
-static uint8_t SERVICE_UUID128[16] = {
-    /* LSB <----------------------------> MSB */
-    // first uuid, 16bit, [12],[13] is the value
-    0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0x00, 0x00, 0xdd, 0xdd,
-};
+extern char device_name[ESP_BLE_ADV_NAME_LEN_MAX];
+extern uint8_t SERVICE_UUID128[16];
 
 typedef enum {
   ADV_CONFIG_FLAG = (1 << 0),
@@ -56,7 +57,7 @@ esp_ble_adv_params_t adv_params = {
 esp_err_t init_ble_server(void) {
   esp_err_t ret;
 
-  ret = esp_ble_gap_set_device_name(DEVICE_NAME);
+  ret = esp_ble_gap_set_device_name(device_name);
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to set device name: %s", esp_err_to_name(ret));
     return ret;

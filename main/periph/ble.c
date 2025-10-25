@@ -12,6 +12,14 @@
 const static char *TAG = "BLE_MAIN";
 const static char *GAP_TAG = "BLE_GAP";
 
+char device_name[ESP_BLE_ADV_NAME_LEN_MAX] = "PongGame BLE";
+
+uint8_t SERVICE_UUID128[16] = {
+    /* LSB <----------------------------> MSB */
+    // first uuid, 16bit, [12],[13] is the value
+    0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0x00, 0x00, 0xdd, 0xdd,
+};
+
 esp_err_t init_ble() {
   esp_err_t ret;
   ESP_LOGI(TAG, "Initializing Bluetooth");
@@ -178,8 +186,12 @@ void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
             ESP_LOG_BUFFER_CHAR(GAP_TAG, adv_name, adv_name_len);
           }
 
+          handle_device_discovery(scan_result, adv_name, adv_name_len);
           break;
 
+        case ESP_GAP_SEARCH_INQ_CMPL_EVT:
+          break;
+        
         default:
           break;
       }
