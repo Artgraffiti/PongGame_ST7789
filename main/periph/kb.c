@@ -6,6 +6,22 @@
 #include "pong/pong_menu.h"
 #include "pong/pong_types.h"
 
+#if !defined(BUTTON_LEFT_GPIO)
+#error "BUTTON_LEFT_GPIO not defined"
+#endif
+
+#if !defined(BUTTON_UP_GPIO)
+#error "BUTTON_UP_GPIO not defined"
+#endif
+
+#if !defined(BUTTON_DOWN_GPIO)
+#error "BUTTON_DOWN_GPIO not defined"
+#endif
+
+#if !defined(BUTTON_RIGHT_GPIO)
+#error "BUTTON_RIGHT_GPIO not defined"
+#endif
+
 const static char *TAG = "KEYBOARD";
 
 void kb_init(void *pvParameters) {
