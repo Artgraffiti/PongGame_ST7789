@@ -22,6 +22,14 @@
 #error "BUTTON_RIGHT_GPIO not defined"
 #endif
 
+#if !defined(BUTTON_CONFIRM_GPIO)
+#error "BUTTON_CONFIRM_GPIO not defined"
+#endif
+
+#if !defined(BUTTON_CANCEL_GPIO)
+#error "BUTTON_CANCEL_GPIO not defined"
+#endif
+
 const static char *TAG = "KEYBOARD";
 
 void kb_init(void *pvParameters) {
