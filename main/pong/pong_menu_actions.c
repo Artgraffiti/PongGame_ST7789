@@ -28,8 +28,7 @@ void menu_toggle_bluetooth(void *pvParameters) {
   } else {
     stop_ble_advertising();
   }
-  ESP_LOGI(TAG, "Bluetooth advertising %s",
-           advertising_enabled ? "enabled" : "disabled");
+  ESP_LOGI(TAG, "Bluetooth advertising %s", advertising_enabled ? "enabled" : "disabled");
 
   if (!is_scanning) {
     start_ble_scan();
@@ -38,8 +37,7 @@ void menu_toggle_bluetooth(void *pvParameters) {
   }
   ESP_LOGI(TAG, "%s BLE scan", is_scanning ? "Started" : "Stopped");
 
-  sprintf(game->menu->items[3].title, "Bluetooth %s",
-          advertising_enabled ? "ON" : "OFF");
+  sprintf(game->menu->items[3].title, "Bluetooth %s", advertising_enabled ? "ON" : "OFF");
 }
 
 void menu_nop(void *pvParameters) {

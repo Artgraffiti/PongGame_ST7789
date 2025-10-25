@@ -13,17 +13,13 @@ void listSPIFFS(char *path) {
   while (true) {
     struct dirent *pe = readdir(dir);
     if (!pe) break;
-    ESP_LOGI(__FUNCTION__, "d_name=%s d_ino=%d d_type=%x", pe->d_name,
-             pe->d_ino, pe->d_type);
+    ESP_LOGI(__FUNCTION__, "d_name=%s d_ino=%d d_type=%x", pe->d_name, pe->d_ino, pe->d_type);
   }
   closedir(dir);
 }
 
 esp_err_t mountSPIFFS(char *path, char *label, int max_files) {
-  esp_vfs_spiffs_conf_t conf = {.base_path = path,
-                                .partition_label = label,
-                                .max_files = max_files,
-                                .format_if_mount_failed = true};
+  esp_vfs_spiffs_conf_t conf = {.base_path = path, .partition_label = label, .max_files = max_files, .format_if_mount_failed = true};
 
   // Use settings defined above to initialize and mount SPIFFS filesystem.
   // Note: esp_vfs_spiffs_register is an all-in-one convenience function.
@@ -54,8 +50,7 @@ esp_err_t mountSPIFFS(char *path, char *label, int max_files) {
   size_t total = 0, used = 0;
   ret = esp_spiffs_info(conf.partition_label, &total, &used);
   if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)",
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "Failed to get SPIFFS partition information (%s)", esp_err_to_name(ret));
   } else {
     ESP_LOGI(TAG, "Mount %s to %s success", path, label);
     ESP_LOGI(TAG, "Partition size: total: %d, used: %d", total, used);

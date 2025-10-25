@@ -9,8 +9,7 @@ static const char *GATTS_TAG = "BLE_GATTS";
 static uint8_t SERVICE_UUID128[16] = {
     /* LSB <----------------------------> MSB */
     // first uuid, 16bit, [12],[13] is the value
-    0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee,
-    0xee, 0xee, 0xee, 0xee, 0x00, 0x00, 0xdd, 0xdd,
+    0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0xee, 0x00, 0x00, 0xdd, 0xdd,
 };
 
 typedef enum {
@@ -115,8 +114,7 @@ void stop_ble_advertising(void) {
   }
 }
 
-void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if,
-                         esp_ble_gatts_cb_param_t *param) {
+void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
   ESP_LOGD(GATTS_TAG, "event = %d", event);
   ESP_LOGW(GATTS_TAG, "Unhandled or unknown GATTS event: %d", event);
 }

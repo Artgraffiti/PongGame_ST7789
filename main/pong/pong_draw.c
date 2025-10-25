@@ -13,16 +13,14 @@ static void draw_midcourt_line(const PongGame *game, uint16_t color) {
   TFT_t *dev = game->display;
 
   for (int y = 0; y < dev->_height; y += 10) {
-    lcdDrawFillRect(dev, dev->_width / 2 - 1, y, dev->_width / 2 + 1, y + 5,
-                    color);
+    lcdDrawFillRect(dev, dev->_width / 2 - 1, y, dev->_width / 2 + 1, y + 5, color);
   }
 }
 
 static void draw_paddle(const PongGame *game, Paddle paddle, uint16_t color) {
   TFT_t *dev = game->display;
 
-  lcdDrawFillRect(dev, paddle.x, paddle.y, paddle.x + paddle.width,
-                  paddle.y + paddle.height, color);
+  lcdDrawFillRect(dev, paddle.x, paddle.y, paddle.x + paddle.width, paddle.y + paddle.height, color);
 }
 
 static void draw_ball(const PongGame *game, Ball ball, uint16_t color) {
@@ -31,14 +29,12 @@ static void draw_ball(const PongGame *game, Ball ball, uint16_t color) {
   lcdDrawFillCircle(dev, ball.x, ball.y, ball.size / 2, color);
 }
 
-static void draw_scores(PongGame *game, uint16_t p1_score, uint16_t p2_score,
-                        uint16_t color) {
+static void draw_scores(PongGame *game, uint16_t p1_score, uint16_t p2_score, uint16_t color) {
   TFT_t *dev = game->display;
 
   char score_str[16];
   snprintf(score_str, sizeof(score_str), "%d - %d", p1_score, p2_score);
-  lcdDrawString(dev, game->resources.default_font, dev->_width / 2 - 30, 30,
-                (uint8_t *)score_str, color);
+  lcdDrawString(dev, game->resources.default_font, dev->_width / 2 - 30, 30, (uint8_t *)score_str, color);
 }
 
 static void draw_game_over(PongGame *game) {
@@ -49,21 +45,16 @@ static void draw_game_over(PongGame *game) {
   FontxFile *def_font = game->resources.default_font;
 
   // Draw winner
-  const char *winner =
-      pl1_score > pl2_score ? "Player1 Wins!" : "Player2 Wins!";
-  lcdDrawString(dev, def_font, dev->_width / 2 - 80, dev->_height / 2 - 30,
-                (uint8_t *)winner, GREEN);
+  const char *winner = pl1_score > pl2_score ? "Player1 Wins!" : "Player2 Wins!";
+  lcdDrawString(dev, def_font, dev->_width / 2 - 80, dev->_height / 2 - 30, (uint8_t *)winner, GREEN);
 
   // Draw final score
   char score_str[32];
-  snprintf(score_str, sizeof(score_str), "Final Score: %d-%d", pl1_score,
-           pl2_score);
-  lcdDrawString(dev, def_font, dev->_width / 2 - 105, dev->_height / 2,
-                (uint8_t *)score_str, WHITE);
+  snprintf(score_str, sizeof(score_str), "Final Score: %d-%d", pl1_score, pl2_score);
+  lcdDrawString(dev, def_font, dev->_width / 2 - 105, dev->_height / 2, (uint8_t *)score_str, WHITE);
 
   // Draw instructions
-  lcdDrawString(dev, def_font, dev->_width / 2 - 90, dev->_height / 2 + 30,
-                (uint8_t *)"CONFIRM: Restart", WHITE);
+  lcdDrawString(dev, def_font, dev->_width / 2 - 90, dev->_height / 2 + 30, (uint8_t *)"CONFIRM: Restart", WHITE);
 }
 
 static void draw_menu(PongGame *game) {
@@ -76,8 +67,7 @@ static void draw_menu(PongGame *game) {
   uint16_t text_color = WHITE;
   uint16_t bg_color = BLACK;
 
-  lcdDrawString(dev, game->resources.large_font, 50, 80, (uint8_t *)"PONG MENU",
-                BLUE);
+  lcdDrawString(dev, game->resources.large_font, 50, 80, (uint8_t *)"PONG MENU", BLUE);
 
   for (int i = 0; i < menu->count; i++) {
     uint16_t y = y_start + i * line_height;
@@ -91,8 +81,7 @@ static void draw_menu(PongGame *game) {
       bg_color = BLACK;
     }
 
-    lcdDrawString(dev, game->resources.default_font, x, y,
-                  (uint8_t *)menu->items[i].title, text_color);
+    lcdDrawString(dev, game->resources.default_font, x, y, (uint8_t *)menu->items[i].title, text_color);
   }
 }
 

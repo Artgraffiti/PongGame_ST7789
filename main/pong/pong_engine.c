@@ -42,8 +42,7 @@ static void init_paddle(const PongGame *game, Paddle *pdl, uint8_t p_num) {
 }
 
 static void init_fonts(GameResources *res) {
-  const char *fonts[] = {"/fonts/ILMH16XB.FNT", "/fonts/ILMH24XB.FNT",
-                         "/fonts/ILMH32XB.FNT"};
+  const char *fonts[] = {"/fonts/ILMH16XB.FNT", "/fonts/ILMH24XB.FNT", "/fonts/ILMH32XB.FNT"};
   InitFontx(res->small_font, fonts[0], "");
   InitFontx(res->default_font, fonts[1], "");
   InitFontx(res->large_font, fonts[2], "");
@@ -76,10 +75,8 @@ void init_game(PongGame *game, TFT_t *dev) {
   init_fonts(&game->resources);
 
   // Menu create
-  const char *titles[] = {"Resume", "Restart game", "Settings",
-                          "Bluetooth OFF"};
-  MenuItemAction actions[] = {menu_resume_game, menu_restart_game, menu_nop,
-                              menu_toggle_bluetooth};
+  const char *titles[] = {"Resume", "Restart game", "Settings", "Bluetooth OFF"};
+  MenuItemAction actions[] = {menu_resume_game, menu_restart_game, menu_nop, menu_toggle_bluetooth};
   game->menu = create_menu(titles, actions, 4);
 
   restart_game(game);
@@ -93,8 +90,7 @@ static void clamp_paddle(const PongGame *game, Paddle *p) {
 }
 
 static void check_winner(PongGame *game) {
-  if (game->player1.score >= SCORE_TO_WIN ||
-      game->player2.score >= SCORE_TO_WIN) {
+  if (game->player1.score >= SCORE_TO_WIN || game->player2.score >= SCORE_TO_WIN) {
     game->state = GAME_STATE_GAME_OVER;
   }
 }
@@ -141,8 +137,7 @@ static void move_ball(Ball *ball) {
 
 static void move_paddle(Paddle *paddle) { paddle->y += paddle->speed; }
 
-static bool is_ball_colliding_with_paddle(const Ball *ball,
-                                          const Paddle *paddle) {
+static bool is_ball_colliding_with_paddle(const Ball *ball, const Paddle *paddle) {
   int ball_left = calc_ball_left(ball);
   int ball_right = calc_ball_right(ball);
   int ball_top = calc_ball_top(ball);
@@ -159,8 +154,7 @@ static bool is_ball_colliding_with_paddle(const Ball *ball,
   return overlap_x && overlap_y;
 }
 
-static void handle_paddle_collision(PongGame *game, const Paddle *paddle,
-                                    uint8_t p_num) {
+static void handle_paddle_collision(PongGame *game, const Paddle *paddle, uint8_t p_num) {
   Ball *ball = &game->ball;
 
   if (!is_ball_colliding_with_paddle(ball, paddle)) return;

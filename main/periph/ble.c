@@ -20,15 +20,13 @@ esp_err_t init_ble() {
   esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
   ret = esp_bt_controller_init(&bt_cfg);
   if (ret) {
-    ESP_LOGE(TAG, "%s init controller failed: %s", __func__,
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "%s init controller failed: %s", __func__, esp_err_to_name(ret));
     return ret;
   }
 
   ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
   if (ret) {
-    ESP_LOGE(TAG, "%s enable controller failed: %s", __func__,
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "%s enable controller failed: %s", __func__, esp_err_to_name(ret));
     return ret;
   }
 
@@ -36,14 +34,12 @@ esp_err_t init_ble() {
 
   ret = esp_bluedroid_init();
   if (ret) {
-    ESP_LOGE(TAG, "%s init bluetooth failed: %s", __func__,
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "%s init bluetooth failed: %s", __func__, esp_err_to_name(ret));
     return ret;
   }
   ret = esp_bluedroid_enable();
   if (ret) {
-    ESP_LOGE(TAG, "%s enable bluetooth failed: %s", __func__,
-             esp_err_to_name(ret));
+    ESP_LOGE(TAG, "%s enable bluetooth failed: %s", __func__, esp_err_to_name(ret));
     return ret;
   }
 
@@ -114,27 +110,23 @@ static char *esp_auth_req_to_str(esp_ble_auth_req_t auth_req) {
   return auth_str;
 }
 
-void gap_event_handler(esp_gap_ble_cb_event_t event,
-                       esp_ble_gap_cb_param_t *param) {
+void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param) {
   ESP_LOGD(GAP_TAG, "event = %d", event);
   switch (event) {
     // BLE server events
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:
-      ESP_LOGI(GAP_TAG, "Adv data set complete, status %d",
-               param->adv_data_cmpl.status);
+      ESP_LOGI(GAP_TAG, "Adv data set complete, status %d", param->adv_data_cmpl.status);
       break;
 
     case ESP_GAP_BLE_SCAN_RSP_DATA_SET_COMPLETE_EVT:
-      ESP_LOGI(GAP_TAG, "Scan response data set complete, status %d",
-               param->scan_rsp_data_cmpl.status);
+      ESP_LOGI(GAP_TAG, "Scan response data set complete, status %d", param->scan_rsp_data_cmpl.status);
       break;
 
     case ESP_GAP_BLE_ADV_START_COMPLETE_EVT:
       // advertising start complete event to indicate advertising start
       // successfully or failed
       if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
-        ESP_LOGE(GAP_TAG, "Advertising start failed, status %d",
-                 param->adv_start_cmpl.status);
+        ESP_LOGE(GAP_TAG, "Advertising start failed, status %d", param->adv_start_cmpl.status);
         break;
       }
       ESP_LOGI(GAP_TAG, "Advertising start successfully");
@@ -142,49 +134,39 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
 
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
       if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
-        ESP_LOGE(GAP_TAG, "Advertising stop failed, status %d",
-                 param->adv_stop_cmpl.status);
+        ESP_LOGE(GAP_TAG, "Advertising stop failed, status %d", param->adv_stop_cmpl.status);
         break;
       }
       ESP_LOGI(GAP_TAG, "Advertising stop successfully");
       break;
 
     case ESP_GAP_BLE_SET_PKT_LENGTH_COMPLETE_EVT:
-      ESP_LOGI(GAP_TAG, "Packet length update, status %d, rx %d, tx %d",
-               param->pkt_data_length_cmpl.status,
-               param->pkt_data_length_cmpl.params.rx_len,
-               param->pkt_data_length_cmpl.params.tx_len);
+      ESP_LOGI(GAP_TAG, "Packet length update, status %d, rx %d, tx %d", param->pkt_data_length_cmpl.status,
+               param->pkt_data_length_cmpl.params.rx_len, param->pkt_data_length_cmpl.params.tx_len);
       break;
 
     case ESP_GAP_BLE_AUTH_CMPL_EVT: {
       esp_bd_addr_t bd_addr;
-      memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr,
-             sizeof(esp_bd_addr_t));
-      ESP_LOGI(
-          GAP_TAG,
-          "Authentication complete, addr_type %u, addr " ESP_BD_ADDR_STR "",
-          param->ble_security.auth_cmpl.addr_type, ESP_BD_ADDR_HEX(bd_addr));
+      memcpy(bd_addr, param->ble_security.auth_cmpl.bd_addr, sizeof(esp_bd_addr_t));
+      ESP_LOGI(GAP_TAG, "Authentication complete, addr_type %u, addr " ESP_BD_ADDR_STR "", param->ble_security.auth_cmpl.addr_type,
+               ESP_BD_ADDR_HEX(bd_addr));
       if (!param->ble_security.auth_cmpl.success) {
-        ESP_LOGI(GAP_TAG, "Pairing failed, reason 0x%x",
-                 param->ble_security.auth_cmpl.fail_reason);
+        ESP_LOGI(GAP_TAG, "Pairing failed, reason 0x%x", param->ble_security.auth_cmpl.fail_reason);
       } else {
-        ESP_LOGI(GAP_TAG, "Pairing successfully, auth_mode %s",
-                 esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
+        ESP_LOGI(GAP_TAG, "Pairing successfully, auth_mode %s", esp_auth_req_to_str(param->ble_security.auth_cmpl.auth_mode));
       }
       break;
     }
 
     // BLE client events
     case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
-      ESP_LOGI(GAP_TAG, "Scan param set complete, status %d",
-               param->scan_param_cmpl.status);
+      ESP_LOGI(GAP_TAG, "Scan param set complete, status %d", param->scan_param_cmpl.status);
       break;
     }
 
     case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
       if (param->scan_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
-        ESP_LOGE(GAP_TAG, "Scanning start failed, status %x",
-                 param->scan_start_cmpl.status);
+        ESP_LOGE(GAP_TAG, "Scanning start failed, status %x", param->scan_start_cmpl.status);
         break;
       }
       ESP_LOGI(GAP_TAG, "Scanning start successfully");
@@ -192,8 +174,7 @@ void gap_event_handler(esp_gap_ble_cb_event_t event,
 
     case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
       if (param->scan_stop_cmpl.status != ESP_BT_STATUS_SUCCESS) {
-        ESP_LOGE(GAP_TAG, "Scanning stop failed, status %x",
-                 param->scan_stop_cmpl.status);
+        ESP_LOGE(GAP_TAG, "Scanning stop failed, status %x", param->scan_stop_cmpl.status);
         break;
       }
       ESP_LOGI(GAP_TAG, "Scanning stop successfully");

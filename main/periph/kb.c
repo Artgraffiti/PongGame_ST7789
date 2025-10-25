@@ -14,8 +14,7 @@ void kb_init(void *pvParameters) {
       .debounce_interval_ms = DEBOUNCE_INTERVAL_MS,
   };
 
-  static button_t btn_left, btn_up, btn_down, btn_right, btn_confirm,
-      btn_cancel;
+  static button_t btn_left, btn_up, btn_down, btn_right, btn_confirm, btn_cancel;
   button_init(&btn_left, BUTTON_LEFT_GPIO, true);
   button_init(&btn_up, BUTTON_UP_GPIO, true);
   button_init(&btn_down, BUTTON_DOWN_GPIO, true);
@@ -45,16 +44,14 @@ void kb_init(void *pvParameters) {
   button_set_event_handler(&btn_cancel, kb_event_handler, pvParameters);
 }
 
-void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
-                      void *event_data) {
+void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data) {
   button_state_info_t *state_info = (button_state_info_t *)event_data;
   PongGame *game = (PongGame *)handler_args;
   bool pressed = state_info->state;
 
   if (id == BUTTON_LEFT_GPIO) {
     game->player1.paddle.speed = pressed ? -PADDLE_SPEED : 0;
-    ESP_LOGI(TAG, "button(LEFT) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(LEFT) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_UP_GPIO) {
     if (game->state == GAME_STATE_PLAYING) {
@@ -62,8 +59,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_up(game->menu);
     }
-    ESP_LOGI(TAG, "button(UP) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(UP) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_DOWN_GPIO) {
     if (game->state == GAME_STATE_PLAYING) {
@@ -71,13 +67,11 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_down(game->menu);
     }
-    ESP_LOGI(TAG, "button(DOWN) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(DOWN) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_RIGHT_GPIO) {
     game->player2.paddle.speed = pressed ? PADDLE_SPEED : 0;
-    ESP_LOGI(TAG, "button(RIGHT) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(RIGHT) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CONFIRM_GPIO) {
     if (game->state == GAME_STATE_GAME_OVER) {
@@ -85,8 +79,7 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
     } else if (game->state == GAME_STATE_PAUSED) {
       if (pressed) menu_select(game->menu, game);
     }
-    ESP_LOGI(TAG, "button(CONFIRM) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(CONFIRM) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
 
   } else if (id == BUTTON_CANCEL_GPIO) {
     if (pressed) {
@@ -96,7 +89,6 @@ void kb_event_handler(void *handler_args, esp_event_base_t base, int32_t id,
         game->state = GAME_STATE_PLAYING;
       }
     }
-    ESP_LOGI(TAG, "button(CANCEL) %d: %s", (int)id,
-             pressed ? "PRESSED" : "RELEASED");
+    ESP_LOGI(TAG, "button(CANCEL) %d: %s", (int)id, pressed ? "PRESSED" : "RELEASED");
   }
 }

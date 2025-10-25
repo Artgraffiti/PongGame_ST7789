@@ -7,7 +7,6 @@
 #define DEVICE_NAME "PongGame BLE"
 
 esp_err_t init_ble();
-void gap_event_handler(esp_gap_ble_cb_event_t event,
-                       esp_ble_gap_cb_param_t *param);
+void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param);
 
 #endif  // BLE_H

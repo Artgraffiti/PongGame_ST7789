@@ -19,13 +19,12 @@ typedef enum {
 bool is_scanning = false;
 static uint8_t scan_config_done = 0;
 
-static esp_ble_scan_params_t ble_scan_params = {
-    .scan_type = BLE_SCAN_TYPE_ACTIVE,
-    .own_addr_type = BLE_ADDR_TYPE_PUBLIC,
-    .scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL,
-    .scan_interval = 0x50,
-    .scan_window = 0x30,
-    .scan_duplicate = BLE_SCAN_DUPLICATE_DISABLE};
+static esp_ble_scan_params_t ble_scan_params = {.scan_type = BLE_SCAN_TYPE_ACTIVE,
+                                                .own_addr_type = BLE_ADDR_TYPE_PUBLIC,
+                                                .scan_filter_policy = BLE_SCAN_FILTER_ALLOW_ALL,
+                                                .scan_interval = 0x50,
+                                                .scan_window = 0x30,
+                                                .scan_duplicate = BLE_SCAN_DUPLICATE_DISABLE};
 
 esp_err_t init_ble_client(void) {
   esp_err_t ret;
@@ -85,15 +84,12 @@ void stop_ble_scan(void) {
   }
 }
 
-void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if,
-                         esp_ble_gattc_cb_param_t *param) {
+void gattc_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_t gattc_if, esp_ble_gattc_cb_param_t *param) {
   ESP_LOGD(TAG, "GATTC event = %d", event);
 
   switch (event) {
     case ESP_GATTC_REG_EVT:
-      ESP_LOGI(GATTC_TAG,
-               "GATT client register, status %d, app_id %d, gattc_if %d",
-               param->reg.status, param->reg.app_id, gattc_if);
+      ESP_LOGI(GATTC_TAG, "GATT client register, status %d, app_id %d, gattc_if %d", param->reg.status, param->reg.app_id, gattc_if);
       break;
 
     default:
