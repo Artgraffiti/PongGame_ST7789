@@ -5,6 +5,7 @@
 #include "esp_err.h"
 #include "esp_gap_ble_api.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 
 static const char *TAG = "BLE_CLIENT";
 const static char *GATTC_TAG = "BLE_GATTC";
@@ -18,6 +19,10 @@ typedef enum {
 
 bool is_scanning = false;
 static uint8_t scan_config_done = 0;
+
+void ble_scan_timer_cb(void *arg);
+static esp_timer_handle_t ble_scan_timer;
+const static esp_timer_create_args_t ble_timer_args = {.callback = &ble_scan_timer_cb, .name = "ble_scan_timer"};
 
 static esp_ble_scan_params_t ble_scan_params = {.scan_type = BLE_SCAN_TYPE_ACTIVE,
                                                 .own_addr_type = BLE_ADDR_TYPE_PUBLIC,
@@ -41,6 +46,7 @@ esp_err_t init_ble_client(void) {
     return ret;
   }
   scan_config_done |= SCAN_CONFIG_FLAG;
+  ESP_ERROR_CHECK(esp_timer_create(&ble_timer_args, &ble_scan_timer));
 
   ESP_LOGI(TAG, "BLE client initialized successfully");
   return ESP_OK;
@@ -57,6 +63,7 @@ void start_ble_scan(void) {
   }
 
   esp_err_t ret = esp_ble_gap_start_scanning(SCAN_DURATION_DEFAULT);
+  ESP_ERROR_CHECK(esp_timer_start_once(ble_scan_timer, SCAN_DURATION_DEFAULT * 1000 * 1000));
   if (ret == ESP_OK) {
     is_scanning = true;
     ESP_LOGI(TAG, "Started BLE scan for %d seconds", SCAN_DURATION_DEFAULT);
@@ -65,13 +72,23 @@ void start_ble_scan(void) {
   }
 }
 
+void ble_scan_timer_cb(void *arg) {
+  ESP_LOGI(TAG, "BLE scan timer expired, stopping scan");
+  is_scanning = false;
+}
+
 void stop_ble_scan(void) {
   if (!scan_config_done) {
     ESP_LOGW(TAG, "Scan parameters not set yet");
     return;
   }
 
+  if (esp_timer_is_active(ble_scan_timer)) {
+    ESP_ERROR_CHECK(esp_timer_stop(ble_scan_timer));
+  }
+
   if (!is_scanning) {
+    ESP_LOGW(TAG, "Scan not active");
     return;
   }
 

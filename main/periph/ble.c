@@ -133,7 +133,7 @@ void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
       break;
 
     case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
-      if (param->adv_start_cmpl.status != ESP_BT_STATUS_SUCCESS) {
+      if (param->adv_stop_cmpl.status != ESP_BT_STATUS_SUCCESS) {
         ESP_LOGE(GAP_TAG, "Advertising stop failed, status %d", param->adv_stop_cmpl.status);
         break;
       }
@@ -161,6 +161,29 @@ void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *par
     // BLE client events
     case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
       ESP_LOGI(GAP_TAG, "Scan param set complete, status %d", param->scan_param_cmpl.status);
+      break;
+    }
+
+    case ESP_GAP_BLE_SCAN_RESULT_EVT: {
+      esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
+      switch (scan_result->scan_rst.search_evt) {
+        case ESP_GAP_SEARCH_INQ_RES_EVT:
+          uint8_t adv_name_len = 0;
+          uint8_t *adv_name =
+              esp_ble_resolve_adv_data_by_type(scan_result->scan_rst.ble_adv, scan_result->scan_rst.adv_data_len + scan_result->scan_rst.scan_rsp_len,
+                                               ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
+
+          if (adv_name_len != 0) {
+            ESP_LOGI(GAP_TAG, "Scan result, device " ESP_BD_ADDR_STR ", name len %u", ESP_BD_ADDR_HEX(scan_result->scan_rst.bda), adv_name_len);
+            ESP_LOG_BUFFER_CHAR(GAP_TAG, adv_name, adv_name_len);
+          }
+
+          break;
+
+        default:
+          break;
+      }
+
       break;
     }
 

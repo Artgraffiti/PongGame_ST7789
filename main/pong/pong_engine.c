@@ -75,9 +75,9 @@ void init_game(PongGame *game, TFT_t *dev) {
   init_fonts(&game->resources);
 
   // Menu create
-  const char *titles[] = {"Resume", "Restart game", "Settings", "Bluetooth OFF"};
-  MenuItemAction actions[] = {menu_resume_game, menu_restart_game, menu_nop, menu_toggle_bluetooth};
-  game->menu = create_menu(titles, actions, 4);
+  const char *titles[] = {"Resume", "Restart game", "Settings", "BLE ADV OFF", "BLE SCAN OFF"};
+  MenuItemAction actions[] = {menu_resume_game, menu_restart_game, menu_nop, menu_toggle_ble_advertising, menu_toggle_ble_scan};
+  game->menu = create_menu(titles, actions, 5);
 
   restart_game(game);
 }

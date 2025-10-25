@@ -6,9 +6,7 @@
 #include "esp_err.h"
 #include "esp_gattc_api.h"
 
-extern bool is_scanning;
-
-#define SCAN_DURATION_DEFAULT 30
+#define SCAN_DURATION_DEFAULT 5
 #define MAX_SCAN_DEVICES 20
 
 esp_err_t init_ble_client(void);

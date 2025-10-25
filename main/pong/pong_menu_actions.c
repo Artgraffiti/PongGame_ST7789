@@ -19,7 +19,7 @@ void menu_restart_game(void *pvParameters) {
   restart_game(game);
 }
 
-void menu_toggle_bluetooth(void *pvParameters) {
+void menu_toggle_ble_advertising(void *pvParameters) {
   PongGame *game = (PongGame *)pvParameters;
   extern bool advertising_enabled;
 
@@ -30,6 +30,13 @@ void menu_toggle_bluetooth(void *pvParameters) {
   }
   ESP_LOGI(TAG, "Bluetooth advertising %s", advertising_enabled ? "enabled" : "disabled");
 
+  sprintf(game->menu->items[3].title, "BLE ADV %s", advertising_enabled ? "ON" : "OFF");
+}
+
+void menu_toggle_ble_scan(void *pvParameters) {
+  PongGame *game = (PongGame *)pvParameters;
+  extern bool is_scanning;
+
   if (!is_scanning) {
     start_ble_scan();
   } else {
@@ -37,7 +44,7 @@ void menu_toggle_bluetooth(void *pvParameters) {
   }
   ESP_LOGI(TAG, "%s BLE scan", is_scanning ? "Started" : "Stopped");
 
-  sprintf(game->menu->items[3].title, "Bluetooth %s", advertising_enabled ? "ON" : "OFF");
+  sprintf(game->menu->items[4].title, "BLE SCAN %s", is_scanning ? "ON" : "OFF");
 }
 
 void menu_nop(void *pvParameters) {
